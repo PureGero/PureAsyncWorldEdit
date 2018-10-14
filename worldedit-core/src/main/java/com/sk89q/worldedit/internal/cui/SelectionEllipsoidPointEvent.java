@@ -19,14 +19,14 @@
 
 package com.sk89q.worldedit.internal.cui;
 
-import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.math.BlockVector3d;
 
 public class SelectionEllipsoidPointEvent implements CUIEvent {
 
     protected final int id;
-    protected final Vector pos;
+    protected final BlockVector3d pos;
 
-    public SelectionEllipsoidPointEvent(int id, Vector pos) {
+    public SelectionEllipsoidPointEvent(int id, BlockVector3d pos) {
         this.id = id;
         this.pos = pos;
     }

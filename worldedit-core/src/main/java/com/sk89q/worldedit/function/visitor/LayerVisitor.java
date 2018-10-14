@@ -22,14 +22,14 @@ package com.sk89q.worldedit.function.visitor;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.function.LayerFunction;
 import com.sk89q.worldedit.function.mask.Mask2D;
 import com.sk89q.worldedit.function.mask.Masks;
 import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.RunContext;
+import com.sk89q.worldedit.math.BlockVector2d;
+import com.sk89q.worldedit.math.BlockVector3d;
 import com.sk89q.worldedit.regions.FlatRegion;
 
 import java.util.List;
@@ -92,20 +92,20 @@ public class LayerVisitor implements Operation {
 
     @Override
     public Operation resume(RunContext run) throws WorldEditException {
-        for (Vector2D column : flatRegion.asFlatRegion()) {
+        for (BlockVector2d column : flatRegion.asFlatRegion()) {
             if (!mask.test(column)) {
                 continue;
             }
 
             // Abort if we are underground
-            if (function.isGround(column.toVector(maxY + 1))) {
+            if (function.isGround(column.toBlockVector3d(maxY + 1))) {
                 return null;
             }
 
             boolean found = false;
             int groundY = 0;
             for (int y = maxY; y >= minY; --y) {
-                Vector test = column.toVector(y);
+                BlockVector3d test = column.toBlockVector3d(y);
                 if (!found) {
                     if (function.isGround(test)) {
                         found = true;

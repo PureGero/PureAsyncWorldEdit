@@ -23,7 +23,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.Lists;
-import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.entity.metadata.EntityProperties;
@@ -37,6 +36,8 @@ import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.Masks;
 import com.sk89q.worldedit.function.visitor.EntityVisitor;
 import com.sk89q.worldedit.function.visitor.RegionVisitor;
+import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.Vector3d;
 import com.sk89q.worldedit.math.transform.Identity;
 import com.sk89q.worldedit.math.transform.Transform;
 import com.sk89q.worldedit.regions.Region;
@@ -55,8 +56,8 @@ public class ForwardExtentCopy implements Operation {
     private final Extent source;
     private final Extent destination;
     private final Region region;
-    private final Vector from;
-    private final Vector to;
+    private final BlockVector3d from;
+    private final BlockVector3d to;
     private int repetitions = 1;
     private Mask sourceMask = Masks.alwaysTrue();
     private boolean removingEntities;
@@ -75,9 +76,9 @@ public class ForwardExtentCopy implements Operation {
      * @param region the region to copy
      * @param destination the destination extent
      * @param to the destination position
-     * @see #ForwardExtentCopy(Extent, Region, Vector, Extent, Vector) the main constructor
+     * @see #ForwardExtentCopy(Extent, Region, BlockVector3d, Extent, BlockVector3d) the main constructor
      */
-    public ForwardExtentCopy(Extent source, Region region, Extent destination, Vector to) {
+    public ForwardExtentCopy(Extent source, Region region, Extent destination, BlockVector3d to) {
         this(source, region, region.getMinimumPoint(), destination, to);
     }
 
@@ -90,7 +91,7 @@ public class ForwardExtentCopy implements Operation {
      * @param destination the destination extent
      * @param to the destination position
      */
-    public ForwardExtentCopy(Extent source, Region region, Vector from, Extent destination, Vector to) {
+    public ForwardExtentCopy(Extent source, Region region, BlockVector3d from, Extent destination, BlockVector3d to) {
         checkNotNull(source);
         checkNotNull(region);
         checkNotNull(from);
@@ -255,7 +256,7 @@ public class ForwardExtentCopy implements Operation {
             lastVisitor = blockVisitor;
 
             if (copyingEntities) {
-                ExtentEntityCopy entityCopy = new ExtentEntityCopy(from, destination, to, currentTransform);
+                ExtentEntityCopy entityCopy = new ExtentEntityCopy(from.toVector3d(), destination, to.toVector3d(), currentTransform);
                 entityCopy.setRemoving(removingEntities);
                 List<? extends Entity> entities = Lists.newArrayList(source.getEntities(region));
                 entities.removeIf(entity -> {

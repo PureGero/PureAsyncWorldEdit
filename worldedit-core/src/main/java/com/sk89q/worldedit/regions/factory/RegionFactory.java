@@ -19,11 +19,11 @@
 
 package com.sk89q.worldedit.regions.factory;
 
-import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.math.BlockVector3d;
 import com.sk89q.worldedit.regions.Region;
 
 public interface RegionFactory {
 
-    Region createCenteredAt(Vector position, double size);
+    Region createCenteredAt(BlockVector3d position, double size);
 
 }

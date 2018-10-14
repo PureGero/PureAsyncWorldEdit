@@ -21,7 +21,7 @@ package com.sk89q.worldedit.function.mask;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.math.BlockVector3d;
 
 import javax.annotation.Nullable;
 
@@ -47,7 +47,7 @@ public class BoundedHeightMask extends AbstractMask {
     }
 
     @Override
-    public boolean test(Vector vector) {
+    public boolean test(BlockVector3d vector) {
         return vector.getY() >= minY && vector.getY() <= maxY;
     }
 

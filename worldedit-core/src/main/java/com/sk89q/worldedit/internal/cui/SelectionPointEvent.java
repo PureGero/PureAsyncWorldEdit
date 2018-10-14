@@ -19,15 +19,15 @@
 
 package com.sk89q.worldedit.internal.cui;
 
-import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.math.BlockVector3d;
 
 public class SelectionPointEvent implements CUIEvent {
 
     protected final int id;
-    protected final Vector pos;
+    protected final BlockVector3d pos;
     protected final int area;
 
-    public SelectionPointEvent(int id, Vector pos, int area) {
+    public SelectionPointEvent(int id, BlockVector3d pos, int area) {
         this.id = id;
         this.pos = pos;
         this.area = area;

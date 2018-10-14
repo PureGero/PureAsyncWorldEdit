@@ -19,10 +19,9 @@
 
 package com.sk89q.worldedit.regions;
 
-import com.sk89q.worldedit.BlockVector;
-import com.sk89q.worldedit.BlockVector2D;
-import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.Vector2D;
+import com.sk89q.worldedit.math.BlockVector2d;
+import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.Vector3d;
 import com.sk89q.worldedit.world.World;
 
 import java.util.List;
@@ -33,21 +32,21 @@ import javax.annotation.Nullable;
 /**
  * Represents a physical shape.
  */
-public interface Region extends Iterable<BlockVector>, Cloneable {
+public interface Region extends Iterable<BlockVector3d>, Cloneable {
 
     /**
      * Get the lower point of a region.
      *
      * @return min. point
      */
-    Vector getMinimumPoint();
+    BlockVector3d getMinimumPoint();
 
     /**
      * Get the upper point of a region.
      *
      * @return max. point
      */
-    Vector getMaximumPoint();
+    BlockVector3d getMaximumPoint();
 
     /**
      * Get the center point of a region.
@@ -56,7 +55,7 @@ public interface Region extends Iterable<BlockVector>, Cloneable {
      *
      * @return center point
      */
-    Vector getCenter();
+    Vector3d getCenter();
 
     /**
      * Get the number of blocks in the region.
@@ -92,7 +91,7 @@ public interface Region extends Iterable<BlockVector>, Cloneable {
      * @param changes array/arguments with multiple related changes
      * @throws RegionOperationException
      */
-    void expand(Vector... changes) throws RegionOperationException;
+    void expand(BlockVector3d... changes) throws RegionOperationException;
 
     /**
      * Contract the region.
@@ -100,7 +99,7 @@ public interface Region extends Iterable<BlockVector>, Cloneable {
      * @param changes array/arguments with multiple related changes
      * @throws RegionOperationException
      */
-    void contract(Vector... changes) throws RegionOperationException;
+    void contract(BlockVector3d... changes) throws RegionOperationException;
 
     /**
      * Shift the region.
@@ -108,7 +107,7 @@ public interface Region extends Iterable<BlockVector>, Cloneable {
      * @param change the change
      * @throws RegionOperationException
      */
-    void shift(Vector change) throws RegionOperationException;
+    void shift(BlockVector3d change) throws RegionOperationException;
 
     /**
      * Returns true based on whether the region contains the point.
@@ -116,21 +115,21 @@ public interface Region extends Iterable<BlockVector>, Cloneable {
      * @param position the position
      * @return true if contained
      */
-    boolean contains(Vector position);
+    boolean contains(BlockVector3d position);
 
     /**
      * Get a list of chunks.
      *
      * @return a list of chunk coordinates
      */
-    Set<Vector2D> getChunks();
+    Set<BlockVector2d> getChunks();
 
     /**
      * Return a list of 16*16*16 chunks in a region
      *
      * @return the chunk cubes this region overlaps with
      */
-    Set<Vector> getChunkCubes();
+    Set<BlockVector3d> getChunkCubes();
 
     /**
      * Sets the world that the selection is in.
@@ -159,5 +158,5 @@ public interface Region extends Iterable<BlockVector>, Cloneable {
      * @param maxPoints maximum number of points to generate. -1 for no limit.
      * @return the points.
      */
-    List<BlockVector2D> polygonize(int maxPoints);
+    List<BlockVector2d> polygonize(int maxPoints);
 }

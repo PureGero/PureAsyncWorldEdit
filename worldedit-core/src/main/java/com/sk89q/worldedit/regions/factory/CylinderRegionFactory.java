@@ -19,8 +19,8 @@
 
 package com.sk89q.worldedit.regions.factory;
 
-import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.Vector2D;
+import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.Vector2d;
 import com.sk89q.worldedit.regions.CylinderRegion;
 import com.sk89q.worldedit.regions.Region;
 
@@ -33,8 +33,8 @@ public class CylinderRegionFactory implements RegionFactory {
     }
 
     @Override
-    public Region createCenteredAt(Vector position, double size) {
-        return new CylinderRegion(position, new Vector2D(size, size), position.getBlockY() - (int) (height / 2), position.getBlockY() + (int) (height / 2));
+    public Region createCenteredAt(BlockVector3d position, double size) {
+        return new CylinderRegion(position, new Vector2d(size, size), position.getBlockY() - (int) (height / 2), position.getBlockY() + (int) (height / 2));
     }
 
 }

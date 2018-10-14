@@ -23,8 +23,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.Iterators;
-import com.sk89q.worldedit.BlockVector;
-import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.math.BlockVector3d;
 import com.sk89q.worldedit.world.World;
 
 import java.util.ArrayList;
@@ -90,37 +89,37 @@ public class RegionIntersection extends AbstractRegion {
     }
 
     @Override
-    public Vector getMinimumPoint() {
-        Vector minimum = regions.get(0).getMinimumPoint();
+    public BlockVector3d getMinimumPoint() {
+        BlockVector3d minimum = regions.get(0).getMinimumPoint();
         for (int i = 1; i < regions.size(); i++) {
-            minimum = Vector.getMinimum(regions.get(i).getMinimumPoint(), minimum);
+            minimum = regions.get(i).getMinimumPoint().getMinimum(minimum);
         }
         return minimum;
     }
 
     @Override
-    public Vector getMaximumPoint() {
-        Vector maximum = regions.get(0).getMaximumPoint();
+    public BlockVector3d getMaximumPoint() {
+        BlockVector3d maximum = regions.get(0).getMaximumPoint();
         for (int i = 1; i < regions.size(); i++) {
-            maximum = Vector.getMaximum(regions.get(i).getMaximumPoint(), maximum);
+            maximum = regions.get(i).getMaximumPoint().getMaximum(maximum);
         }
         return maximum;
     }
 
     @Override
-    public void expand(Vector... changes) throws RegionOperationException {
+    public void expand(BlockVector3d... changes) throws RegionOperationException {
         checkNotNull(changes);
         throw new RegionOperationException("Cannot expand a region intersection");
     }
 
     @Override
-    public void contract(Vector... changes) throws RegionOperationException {
+    public void contract(BlockVector3d... changes) throws RegionOperationException {
         checkNotNull(changes);
         throw new RegionOperationException("Cannot contract a region intersection");
     }
 
     @Override
-    public boolean contains(Vector position) {
+    public boolean contains(BlockVector3d position) {
         checkNotNull(position);
 
         for (Region region : regions) {
@@ -134,8 +133,8 @@ public class RegionIntersection extends AbstractRegion {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    public Iterator<BlockVector> iterator() {
-        Iterator<BlockVector>[] iterators = (Iterator<BlockVector>[]) new Iterator[regions.size()];
+    public Iterator<BlockVector3d> iterator() {
+        Iterator<BlockVector3d>[] iterators = (Iterator<BlockVector3d>[]) new Iterator[regions.size()];
         for (int i = 0; i < regions.size(); i++) {
             iterators[i] = regions.get(i).iterator();
         }

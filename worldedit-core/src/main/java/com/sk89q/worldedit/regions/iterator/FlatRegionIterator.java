@@ -21,13 +21,14 @@ package com.sk89q.worldedit.regions.iterator;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.Vector2D;
+import com.sk89q.worldedit.math.BlockVector2d;
+import com.sk89q.worldedit.math.BlockVector3d;
 import com.sk89q.worldedit.regions.Region;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
-public class FlatRegionIterator implements Iterator<Vector2D>  {
+public class FlatRegionIterator implements Iterator<BlockVector2d>  {
 
     private Region region;
     private int y;
@@ -42,8 +43,8 @@ public class FlatRegionIterator implements Iterator<Vector2D>  {
 
         this.region = region;
 
-        Vector min = region.getMinimumPoint();
-        Vector max = region.getMaximumPoint();
+        BlockVector3d min = region.getMinimumPoint();
+        BlockVector3d max = region.getMaximumPoint();
 
         this.y = min.getBlockY();
 
@@ -64,18 +65,18 @@ public class FlatRegionIterator implements Iterator<Vector2D>  {
     }
 
     private void forward() {
-        while (hasNext() && !region.contains(new Vector(nextX, y, nextZ))) {
+        while (hasNext() && !region.contains(new BlockVector3d(nextX, y, nextZ))) {
             forwardOne();
         }
     }
 
     @Override
-    public Vector2D next() {
+    public BlockVector2d next() {
         if (!hasNext()) {
-            throw new java.util.NoSuchElementException();
+            throw new NoSuchElementException();
         }
 
-        Vector2D answer = new Vector2D(nextX, nextZ);
+        BlockVector2d answer = new BlockVector2d(nextX, nextZ);
 
         forwardOne();
         forward();
@@ -93,11 +94,6 @@ public class FlatRegionIterator implements Iterator<Vector2D>  {
             return;
         }
         nextX = Integer.MIN_VALUE;
-    }
-
-    @Override
-    public void remove() {
-        throw new UnsupportedOperationException();
     }
 
 }

@@ -20,7 +20,8 @@
 package com.sk89q.worldedit.forge;
 
 import com.google.common.collect.ImmutableList;
-import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.Vector3d;
 import com.sk89q.worldedit.registry.state.BooleanProperty;
 import com.sk89q.worldedit.registry.state.DirectionalProperty;
 import com.sk89q.worldedit.registry.state.EnumProperty;
@@ -49,15 +50,15 @@ final class ForgeAdapter {
         return new ForgeWorld(world);
     }
 
-    public static Vector adapt(Vec3d vector) {
-        return new Vector(vector.x, vector.y, vector.z);
+    public static Vector3d adapt(Vec3d vector) {
+        return new Vector3d(vector.x, vector.y, vector.z);
     }
 
-    public static Vector adapt(BlockPos pos) {
-        return new Vector(pos.getX(), pos.getY(), pos.getZ());
+    public static Vector3d adapt(BlockPos pos) {
+        return new Vector3d(pos.getX(), pos.getY(), pos.getZ());
     }
 
-    public static Vec3d toVec3(Vector vector) {
+    public static Vec3d toVec3(BlockVector3d vector) {
         return new Vec3d(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ());
     }
 
@@ -87,7 +88,7 @@ final class ForgeAdapter {
         }
     }
 
-    public static BlockPos toBlockPos(Vector vector) {
+    public static BlockPos toBlockPos(BlockVector3d vector) {
         return new BlockPos(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ());
     }
 

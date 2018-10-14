@@ -19,8 +19,8 @@
 
 package com.sk89q.worldedit.math.noise;
 
-import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.Vector2D;
+import com.sk89q.worldedit.math.Vector2d;
+import com.sk89q.worldedit.math.Vector3d;
 
 import java.util.Random;
 
@@ -50,12 +50,12 @@ public class RandomNoise implements NoiseGenerator {
     }
 
     @Override
-    public float noise(Vector2D position) {
+    public float noise(Vector2d position) {
         return random.nextFloat();
     }
 
     @Override
-    public float noise(Vector position) {
+    public float noise(Vector3d position) {
         return random.nextFloat();
     }
 

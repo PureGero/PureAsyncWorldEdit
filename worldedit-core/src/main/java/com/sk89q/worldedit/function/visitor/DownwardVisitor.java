@@ -21,9 +21,9 @@ package com.sk89q.worldedit.function.visitor;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.function.RegionFunction;
 import com.sk89q.worldedit.function.mask.Mask;
+import com.sk89q.worldedit.math.BlockVector3d;
 
 import java.util.Collection;
 
@@ -51,17 +51,17 @@ public class DownwardVisitor extends RecursiveVisitor {
 
         this.baseY = baseY;
 
-        Collection<Vector> directions = getDirections();
+        Collection<BlockVector3d> directions = getDirections();
         directions.clear();
-        directions.add(new Vector(1, 0, 0));
-        directions.add(new Vector(-1, 0, 0));
-        directions.add(new Vector(0, 0, 1));
-        directions.add(new Vector(0, 0, -1));
-        directions.add(new Vector(0, -1, 0));
+        directions.add(new BlockVector3d(1, 0, 0));
+        directions.add(new BlockVector3d(-1, 0, 0));
+        directions.add(new BlockVector3d(0, 0, 1));
+        directions.add(new BlockVector3d(0, 0, -1));
+        directions.add(new BlockVector3d(0, -1, 0));
     }
 
     @Override
-    protected boolean isVisitable(Vector from, Vector to) {
+    protected boolean isVisitable(BlockVector3d from, BlockVector3d to) {
         int fromY = from.getBlockY();
         return (fromY == baseY || to.subtract(from).getBlockY() < 0) && super.isVisitable(from, to);
     }

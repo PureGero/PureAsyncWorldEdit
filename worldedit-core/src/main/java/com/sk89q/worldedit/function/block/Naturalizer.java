@@ -22,11 +22,11 @@ package com.sk89q.worldedit.function.block;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.function.LayerFunction;
 import com.sk89q.worldedit.function.mask.BlockTypeMask;
 import com.sk89q.worldedit.function.mask.Mask;
+import com.sk89q.worldedit.math.BlockVector3d;
 import com.sk89q.worldedit.world.block.BlockTypes;
 
 /**
@@ -61,12 +61,12 @@ public class Naturalizer implements LayerFunction {
     }
 
     @Override
-    public boolean isGround(Vector position) {
+    public boolean isGround(BlockVector3d position) {
         return mask.test(position);
     }
 
     @Override
-    public boolean apply(Vector position, int depth) throws WorldEditException {
+    public boolean apply(BlockVector3d position, int depth) throws WorldEditException {
         if (mask.test(position)) {
             affected++;
             switch (depth) {

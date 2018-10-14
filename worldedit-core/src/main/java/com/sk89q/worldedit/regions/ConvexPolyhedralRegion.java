@@ -21,7 +21,8 @@ package com.sk89q.worldedit.regions;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.Vector3d;
 import com.sk89q.worldedit.regions.polyhedron.Edge;
 import com.sk89q.worldedit.regions.polyhedron.Triangle;
 import com.sk89q.worldedit.world.World;
@@ -40,7 +41,7 @@ public class ConvexPolyhedralRegion extends AbstractRegion {
     /**
      * Vertices that are contained in the convex hull.
      */
-    private final Set<Vector> vertices = new LinkedHashSet<>();
+    private final Set<BlockVector3d> vertices = new LinkedHashSet<>();
 
     /**
      * Triangles that form the convex hull.
@@ -50,25 +51,25 @@ public class ConvexPolyhedralRegion extends AbstractRegion {
     /**
      * Vertices that are coplanar to the first 3 vertices.
      */
-    private final Set<Vector> vertexBacklog = new LinkedHashSet<>();
+    private final Set<BlockVector3d> vertexBacklog = new LinkedHashSet<>();
 
     /**
      * Minimum point of the axis-aligned bounding box.
      */
-    private Vector minimumPoint;
+    private BlockVector3d minimumPoint;
 
     /**
      * Maximum point of the axis-aligned bounding box.
      */
-    private Vector maximumPoint;
+    private BlockVector3d maximumPoint;
 
     /**
      * Accumulator for the barycenter of the polyhedron. Divide by vertices.size() to get the actual center.
      */
-    private Vector centerAccum = Vector.ZERO;
+    private BlockVector3d centerAccum = BlockVector3d.ZERO;
 
     /**
-     * The last triangle that caused a {@link #contains(Vector)} to classify a point as "outside". Used for optimization.
+     * The last triangle that caused a {@link #contains(Vector3d)} to classify a point as "outside". Used for optimization.
      */
     private Triangle lastTriangle;
 
@@ -108,7 +109,7 @@ public class ConvexPolyhedralRegion extends AbstractRegion {
 
         minimumPoint = null;
         maximumPoint = null;
-        centerAccum = Vector.ZERO;
+        centerAccum = BlockVector3d.ZERO;
         lastTriangle = null;
     }
 
@@ -118,7 +119,7 @@ public class ConvexPolyhedralRegion extends AbstractRegion {
      * @param vertex the vertex
      * @return true, if something changed.
      */
-    public boolean addVertex(Vector vertex) {
+    public boolean addVertex(BlockVector3d vertex) {
         checkNotNull(vertex);
 
         lastTriangle = null; // Probably not necessary
@@ -132,7 +133,7 @@ public class ConvexPolyhedralRegion extends AbstractRegion {
                 return false;
             }
 
-            if (containsRaw(vertex)) {
+            if (containsRaw(vertex.toVector3d())) {
                 return vertexBacklog.add(vertex);
             }
         }
@@ -144,8 +145,8 @@ public class ConvexPolyhedralRegion extends AbstractRegion {
         if (minimumPoint == null) {
             minimumPoint = maximumPoint = vertex;
         } else {
-            minimumPoint = Vector.getMinimum(minimumPoint, vertex);
-            maximumPoint = Vector.getMaximum(maximumPoint, vertex);
+            minimumPoint = minimumPoint.getMinimum(vertex);
+            maximumPoint = maximumPoint.getMaximum(vertex);
         }
 
 
@@ -158,10 +159,10 @@ public class ConvexPolyhedralRegion extends AbstractRegion {
 
         case 3:
             // Generate minimal mesh to start from
-            final Vector[] v = vertices.toArray(new Vector[vertices.size()]);
+            final BlockVector3d[] v = vertices.toArray(new BlockVector3d[vertices.size()]);
 
-            triangles.add((new Triangle(v[0], v[1], v[2])));
-            triangles.add((new Triangle(v[0], v[2], v[1])));
+            triangles.add((new Triangle(v[0].toVector3d(), v[1].toVector3d(), v[2].toVector3d())));
+            triangles.add((new Triangle(v[0].toVector3d(), v[2].toVector3d(), v[1].toVector3d())));
             return true;
         }
 
@@ -171,7 +172,7 @@ public class ConvexPolyhedralRegion extends AbstractRegion {
             final Triangle triangle = it.next();
 
             // If the triangle can't be seen, it's not relevant
-            if (!triangle.above(vertex)) {
+            if (!triangle.above(vertex.toVector3d())) {
                 continue;
             }
 
@@ -191,7 +192,7 @@ public class ConvexPolyhedralRegion extends AbstractRegion {
 
         // Add triangles between the remembered edges and the new vertex.
         for (Edge edge : borderEdges) {
-            triangles.add(edge.createTriangle(vertex));
+            triangles.add(edge.createTriangle(vertex.toVector3d()));
         }
 
         if (!vertexBacklog.isEmpty()) {
@@ -199,9 +200,9 @@ public class ConvexPolyhedralRegion extends AbstractRegion {
             vertices.remove(vertex);
 
             // Clone, clear and work through the backlog
-            final List<Vector> vertexBacklog2 = new ArrayList<>(vertexBacklog);
+            final List<BlockVector3d> vertexBacklog2 = new ArrayList<>(vertexBacklog);
             vertexBacklog.clear();
-            for (Vector vertex2 : vertexBacklog2) {
+            for (BlockVector3d vertex2 : vertexBacklog2) {
                 addVertex(vertex2);
             }
 
@@ -217,39 +218,40 @@ public class ConvexPolyhedralRegion extends AbstractRegion {
     }
 
     @Override
-    public Vector getMinimumPoint() {
+    public BlockVector3d getMinimumPoint() {
         return minimumPoint;
     }
 
     @Override
-    public Vector getMaximumPoint() {
+    public BlockVector3d getMaximumPoint() {
         return maximumPoint;
     }
     
     @Override
-    public Vector getCenter() {
-        return centerAccum.divide(vertices.size());
+    public Vector3d getCenter() {
+        return centerAccum.toVector3d().divide(vertices.size());
     }
 
     @Override
-    public void expand(Vector... changes) throws RegionOperationException {
+    public void expand(BlockVector3d... changes) throws RegionOperationException {
     }
 
     @Override
-    public void contract(Vector... changes) throws RegionOperationException {
+    public void contract(BlockVector3d... changes) throws RegionOperationException {
     }
 
     @Override
-    public void shift(Vector change) throws RegionOperationException {
+    public void shift(BlockVector3d change) throws RegionOperationException {
+        Vector3d vec = change.toVector3d();
         shiftCollection(vertices, change);
         shiftCollection(vertexBacklog, change);
 
         for (int i = 0; i < triangles.size(); ++i) {
             final Triangle triangle = triangles.get(i);
 
-            final Vector v0 = change.add(triangle.getVertex(0));
-            final Vector v1 = change.add(triangle.getVertex(1));
-            final Vector v2 = change.add(triangle.getVertex(2));
+            final Vector3d v0 = vec.add(triangle.getVertex(0));
+            final Vector3d v1 = vec.add(triangle.getVertex(1));
+            final Vector3d v2 = vec.add(triangle.getVertex(2));
 
             triangles.set(i, new Triangle(v0, v1, v2));
         }
@@ -260,16 +262,16 @@ public class ConvexPolyhedralRegion extends AbstractRegion {
         lastTriangle = null;
     }
 
-    private static void shiftCollection(Collection<Vector> collection, Vector change) {
-        final List<Vector> tmp = new ArrayList<>(collection);
+    private static void shiftCollection(Collection<BlockVector3d> collection, BlockVector3d change) {
+        final List<BlockVector3d> tmp = new ArrayList<>(collection);
         collection.clear();
-        for (Vector vertex : tmp) {
+        for (BlockVector3d vertex : tmp) {
             collection.add(change.add(vertex));
         }
     }
 
     @Override
-    public boolean contains(Vector position) {
+    public boolean contains(BlockVector3d position) {
         if (!isDefined()) {
             return false;
         }
@@ -278,8 +280,8 @@ public class ConvexPolyhedralRegion extends AbstractRegion {
         final int y = position.getBlockY();
         final int z = position.getBlockZ();
 
-        final Vector min = getMinimumPoint();
-        final Vector max = getMaximumPoint();
+        final BlockVector3d min = getMinimumPoint();
+        final BlockVector3d max = getMaximumPoint();
 
         if (x < min.getBlockX()) return false;
         if (x > max.getBlockX()) return false;
@@ -288,10 +290,10 @@ public class ConvexPolyhedralRegion extends AbstractRegion {
         if (z < min.getBlockZ()) return false;
         if (z > max.getBlockZ()) return false;
 
-        return containsRaw(position);
+        return containsRaw(position.toVector3d());
     }
 
-    private boolean containsRaw(Vector pt) {
+    private boolean containsRaw(Vector3d pt) {
         if (lastTriangle != null && lastTriangle.above(pt)) {
             return false;
         }
@@ -310,12 +312,12 @@ public class ConvexPolyhedralRegion extends AbstractRegion {
         return true;
     }
 
-    public Collection<Vector> getVertices() {
+    public Collection<BlockVector3d> getVertices() {
         if (vertexBacklog.isEmpty()) {
             return vertices;
         }
 
-        final List<Vector> ret = new ArrayList<>(vertices);
+        final List<BlockVector3d> ret = new ArrayList<>(vertices);
         ret.addAll(vertexBacklog);
 
         return ret;

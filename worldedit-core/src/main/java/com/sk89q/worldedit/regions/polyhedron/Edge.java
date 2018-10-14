@@ -21,14 +21,14 @@ package com.sk89q.worldedit.regions.polyhedron;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.math.Vector3d;
 
 public class Edge {
 
-    private final Vector start;
-    private final Vector end;
+    private final Vector3d start;
+    private final Vector3d end;
 
-    public Edge(Vector start, Vector end) {
+    public Edge(Vector3d start, Vector3d end) {
         checkNotNull(start);
         checkNotNull(end);
 
@@ -71,7 +71,7 @@ public class Edge {
      * @param vertex the 3rd vertex for the triangle
      * @return a triangle
      */
-    public Triangle createTriangle(Vector vertex) {
+    public Triangle createTriangle(Vector3d vertex) {
         checkNotNull(vertex);
         return new Triangle(this.start, this.end, vertex);
     }
@@ -82,7 +82,7 @@ public class Edge {
      * @param vertex the second vertex
      * @return a new triangle
      */
-    public Triangle createTriangle2(Vector vertex) {
+    public Triangle createTriangle2(Vector3d vertex) {
         checkNotNull(vertex);
         return new Triangle(this.start, vertex, this.end);
     }

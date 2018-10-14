@@ -21,13 +21,13 @@ package com.sk89q.worldedit.regions.polyhedron;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.math.Vector3d;
 
 public class Triangle {
 
     private String tag = "Triangle";
-    private final Vector[] vertices;
-    private final Vector normal;
+    private final Vector3d[] vertices;
+    private final Vector3d normal;
     private final double b;
 
     /**
@@ -37,12 +37,12 @@ public class Triangle {
      * @param v1 second vertex
      * @param v2 third vertex
      */
-    public Triangle(Vector v0, Vector v1, Vector v2) {
+    public Triangle(Vector3d v0, Vector3d v1, Vector3d v2) {
         checkNotNull(v0);
         checkNotNull(v1);
         checkNotNull(v2);
 
-        vertices = new Vector[] { v0, v1, v2 };
+        vertices = new Vector3d[] { v0, v1, v2 };
 
         this.normal = v1.subtract(v0).cross(v2.subtract(v0)).normalize();
         this.b = Math.max(Math.max(normal.dot(v0), normal.dot(v1)), normal.dot(v2));
@@ -54,7 +54,7 @@ public class Triangle {
      * @param index Vertex index. Valid input: 0..2
      * @return a vertex
      */
-    public Vector getVertex(int index) {
+    public Vector3d getVertex(int index) {
         return vertices[index];
     }
 
@@ -77,7 +77,7 @@ public class Triangle {
      * @param pt the point to test
      * @return true if the point is below
      */
-    public boolean below(Vector pt) {
+    public boolean below(Vector3d pt) {
         checkNotNull(pt);
         return normal.dot(pt) < b;
     }
@@ -88,7 +88,7 @@ public class Triangle {
      * @param pt the point to test
      * @return true if the point is above
      */
-    public boolean above(Vector pt) {
+    public boolean above(Vector3d pt) {
         checkNotNull(pt);
         return normal.dot(pt) > b;
     }

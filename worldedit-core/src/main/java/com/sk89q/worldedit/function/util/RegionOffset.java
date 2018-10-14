@@ -21,16 +21,16 @@ package com.sk89q.worldedit.function.util;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.function.RegionFunction;
+import com.sk89q.worldedit.math.BlockVector3d;
 
 /**
  * Offsets the position parameter by adding a given offset vector.
  */
 public class RegionOffset implements RegionFunction {
 
-    private Vector offset;
+    private BlockVector3d offset;
     private final RegionFunction function;
 
     /**
@@ -39,7 +39,7 @@ public class RegionOffset implements RegionFunction {
      * @param offset the offset
      * @param function the function that is called with the offset position
      */
-    public RegionOffset(Vector offset, RegionFunction function) {
+    public RegionOffset(BlockVector3d offset, RegionFunction function) {
         checkNotNull(function);
         setOffset(offset);
         this.function = function;
@@ -50,7 +50,7 @@ public class RegionOffset implements RegionFunction {
      *
      * @return the offset
      */
-    public Vector getOffset() {
+    public BlockVector3d getOffset() {
         return offset;
     }
 
@@ -59,13 +59,13 @@ public class RegionOffset implements RegionFunction {
      *
      * @param offset the offset
      */
-    public void setOffset(Vector offset) {
+    public void setOffset(BlockVector3d offset) {
         checkNotNull(offset);
         this.offset = offset;
     }
 
     @Override
-    public boolean apply(Vector position) throws WorldEditException {
+    public boolean apply(BlockVector3d position) throws WorldEditException {
         return function.apply(position.add(offset));
     }
 

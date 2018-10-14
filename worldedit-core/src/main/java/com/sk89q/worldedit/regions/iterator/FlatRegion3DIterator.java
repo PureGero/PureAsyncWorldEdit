@@ -21,23 +21,23 @@ package com.sk89q.worldedit.regions.iterator;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.sk89q.worldedit.BlockVector;
-import com.sk89q.worldedit.Vector2D;
+import com.sk89q.worldedit.math.BlockVector2d;
+import com.sk89q.worldedit.math.BlockVector3d;
 import com.sk89q.worldedit.regions.FlatRegion;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class FlatRegion3DIterator implements Iterator<BlockVector> {
+public class FlatRegion3DIterator implements Iterator<BlockVector3d> {
 
-    private Iterator<Vector2D> flatIterator;
+    private Iterator<BlockVector2d> flatIterator;
     private int minY;
     private int maxY;
 
-    private Vector2D next2D;
+    private BlockVector2d next2D;
     private int nextY;
 
-    public FlatRegion3DIterator(FlatRegion region, Iterator<Vector2D> flatIterator) {
+    public FlatRegion3DIterator(FlatRegion region, Iterator<BlockVector2d> flatIterator) {
         checkNotNull(region);
         checkNotNull(flatIterator);
 
@@ -63,12 +63,12 @@ public class FlatRegion3DIterator implements Iterator<BlockVector> {
     }
 
     @Override
-    public BlockVector next() {
+    public BlockVector3d next() {
         if (!hasNext()) {
             throw new NoSuchElementException();
         }
 
-        BlockVector current = new BlockVector(next2D.getBlockX(), nextY, next2D.getBlockZ());
+        BlockVector3d current = new BlockVector3d(next2D.getBlockX(), nextY, next2D.getBlockZ());
         if (nextY < maxY) {
             nextY++;
         } else if (flatIterator.hasNext()) {

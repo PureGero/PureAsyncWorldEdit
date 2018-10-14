@@ -19,17 +19,18 @@
 
 package com.sk89q.worldedit.function.block;
 
-import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.function.RegionFunction;
+import com.sk89q.worldedit.math.BlockVector3d;
 
 /**
- * Keeps a count of the number of times that {@link #apply(Vector)} is called.
+ * Keeps a count of the number of times that {@link #apply(BlockVector3d)} is
+ * called.
  */
- public class Counter implements RegionFunction {
+public class Counter implements RegionFunction {
 
     private int count;
-    
+
     /**
      * Returns the number of blocks that have been counted.
      *
@@ -40,7 +41,7 @@ import com.sk89q.worldedit.function.RegionFunction;
     }
 
     @Override
-    public boolean apply(Vector position) throws WorldEditException {
+    public boolean apply(BlockVector3d position) throws WorldEditException {
         count++;
         return false;
     }

@@ -23,7 +23,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.sk89q.worldedit.util.GuavaUtil.firstNonNull;
 
 import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.NullExtent;
@@ -32,6 +31,7 @@ import com.sk89q.worldedit.function.EditContext;
 import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.RunContext;
 import com.sk89q.worldedit.internal.expression.ExpressionException;
+import com.sk89q.worldedit.math.Vector3d;
 import com.sk89q.worldedit.regions.NullRegion;
 import com.sk89q.worldedit.regions.Region;
 
@@ -43,7 +43,7 @@ public class Deform implements Contextual<Operation> {
     private Region region;
     private String expression;
     private Mode mode = Mode.UNIT_CUBE;
-    private Vector offset = new Vector();
+    private Vector3d offset = Vector3d.ZERO;
 
     public Deform(String expression) {
         this(new NullExtent(), new NullRegion(), expression);
@@ -104,11 +104,11 @@ public class Deform implements Contextual<Operation> {
         this.mode = mode;
     }
 
-    public Vector getOffset() {
+    public Vector3d getOffset() {
         return offset;
     }
 
-    public void setOffset(Vector offset) {
+    public void setOffset(Vector3d offset) {
         checkNotNull(offset, "offset");
         this.offset = offset;
     }
@@ -120,31 +120,31 @@ public class Deform implements Contextual<Operation> {
 
     @Override
     public Operation createFromContext(final EditContext context) {
-        final Vector zero;
-        Vector unit;
+        final Vector3d zero;
+        Vector3d unit;
 
         Region region = firstNonNull(context.getRegion(), this.region);
 
         switch (mode) {
             case UNIT_CUBE:
-                final Vector min = region.getMinimumPoint();
-                final Vector max = region.getMaximumPoint();
+                final Vector3d min = region.getMinimumPoint().toVector3d();
+                final Vector3d max = region.getMaximumPoint().toVector3d();
 
                 zero = max.add(min).multiply(0.5);
                 unit = max.subtract(zero);
 
-                if (unit.getX() == 0) unit = unit.setX(1.0);
-                if (unit.getY() == 0) unit = unit.setY(1.0);
-                if (unit.getZ() == 0) unit = unit.setZ(1.0);
+                if (unit.getX() == 0) unit = unit.withX(1.0);
+                if (unit.getY() == 0) unit = unit.withY(1.0);
+                if (unit.getZ() == 0) unit = unit.withZ(1.0);
                 break;
             case RAW_COORD:
-                zero = Vector.ZERO;
-                unit = Vector.ONE;
+                zero = Vector3d.ZERO;
+                unit = Vector3d.ONE;
                 break;
             case OFFSET:
             default:
                 zero = offset;
-                unit = Vector.ONE;
+                unit = Vector3d.ONE;
         }
 
         return new DeformOperation(context.getDestination(), region, zero, unit, expression);
@@ -153,11 +153,11 @@ public class Deform implements Contextual<Operation> {
     private static final class DeformOperation implements Operation {
         private final Extent destination;
         private final Region region;
-        private final Vector zero;
-        private final Vector unit;
+        private final Vector3d zero;
+        private final Vector3d unit;
         private final String expression;
 
-        private DeformOperation(Extent destination, Region region, Vector zero, Vector unit, String expression) {
+        private DeformOperation(Extent destination, Region region, Vector3d zero, Vector3d unit, String expression) {
             this.destination = destination;
             this.region = region;
             this.zero = zero;

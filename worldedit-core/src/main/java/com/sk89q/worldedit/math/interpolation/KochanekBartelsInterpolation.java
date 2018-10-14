@@ -23,7 +23,7 @@ package com.sk89q.worldedit.math.interpolation;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.math.Vector3d;
 
 import java.util.Collections;
 import java.util.List;
@@ -37,10 +37,10 @@ import java.util.List;
 public class KochanekBartelsInterpolation implements Interpolation {
 
     private List<Node> nodes;
-    private Vector[] coeffA;
-    private Vector[] coeffB;
-    private Vector[] coeffC;
-    private Vector[] coeffD;
+    private Vector3d[] coeffA;
+    private Vector3d[] coeffB;
+    private Vector3d[] coeffC;
+    private Vector3d[] coeffD;
     private double scaling;
 
     public KochanekBartelsInterpolation() {
@@ -57,10 +57,10 @@ public class KochanekBartelsInterpolation implements Interpolation {
 
     private void recalc() {
         final int nNodes = nodes.size();
-        coeffA = new Vector[nNodes];
-        coeffB = new Vector[nNodes];
-        coeffC = new Vector[nNodes];
-        coeffD = new Vector[nNodes];
+        coeffA = new Vector3d[nNodes];
+        coeffB = new Vector3d[nNodes];
+        coeffC = new Vector3d[nNodes];
+        coeffD = new Vector3d[nNodes];
 
         if (nNodes == 0)
             return;
@@ -107,11 +107,11 @@ public class KochanekBartelsInterpolation implements Interpolation {
      * @param f4 coefficient for baseIndex+2
      * @return linear combination of nodes[n-1..n+2] with f1..4
      */
-    private Vector linearCombination(int baseIndex, double f1, double f2, double f3, double f4) {
-        final Vector r1 = retrieve(baseIndex - 1).multiply(f1);
-        final Vector r2 = retrieve(baseIndex    ).multiply(f2);
-        final Vector r3 = retrieve(baseIndex + 1).multiply(f3);
-        final Vector r4 = retrieve(baseIndex + 2).multiply(f4);
+    private Vector3d linearCombination(int baseIndex, double f1, double f2, double f3, double f4) {
+        final Vector3d r1 = retrieve(baseIndex - 1).multiply(f1);
+        final Vector3d r2 = retrieve(baseIndex    ).multiply(f2);
+        final Vector3d r3 = retrieve(baseIndex + 1).multiply(f3);
+        final Vector3d r4 = retrieve(baseIndex + 2).multiply(f4);
 
         return r1.add(r2).add(r3).add(r4);
     }
@@ -122,7 +122,7 @@ public class KochanekBartelsInterpolation implements Interpolation {
      * @param index node index to retrieve
      * @return nodes[clamp(0, nodes.length-1)]
      */
-    private Vector retrieve(int index) {
+    private Vector3d retrieve(int index) {
         if (index < 0)
             return fastRetrieve(0);
 
@@ -132,12 +132,12 @@ public class KochanekBartelsInterpolation implements Interpolation {
         return fastRetrieve(index);
     }
 
-    private Vector fastRetrieve(int index) {
+    private Vector3d fastRetrieve(int index) {
         return nodes.get(index).getPosition();
     }
 
     @Override
-    public Vector getPosition(double position) {
+    public Vector3d getPosition(double position) {
         if (coeffA == null)
             throw new IllegalStateException("Must call setNodes first.");
 
@@ -149,16 +149,16 @@ public class KochanekBartelsInterpolation implements Interpolation {
         final int index = (int) Math.floor(position);
         final double remainder = position - index;
 
-        final Vector a = coeffA[index];
-        final Vector b = coeffB[index];
-        final Vector c = coeffC[index];
-        final Vector d = coeffD[index];
+        final Vector3d a = coeffA[index];
+        final Vector3d b = coeffB[index];
+        final Vector3d c = coeffC[index];
+        final Vector3d d = coeffD[index];
 
         return a.multiply(remainder).add(b).multiply(remainder).add(c).multiply(remainder).add(d);
     }
 
     @Override
-    public Vector get1stDerivative(double position) {
+    public Vector3d get1stDerivative(double position) {
         if (coeffA == null)
             throw new IllegalStateException("Must call setNodes first.");
 
@@ -170,9 +170,9 @@ public class KochanekBartelsInterpolation implements Interpolation {
         final int index = (int) Math.floor(position);
         //final double remainder = position - index;
 
-        final Vector a = coeffA[index];
-        final Vector b = coeffB[index];
-        final Vector c = coeffC[index];
+        final Vector3d a = coeffA[index];
+        final Vector3d b = coeffB[index];
+        final Vector3d c = coeffC[index];
 
         return a.multiply(1.5*position - 3.0*index).add(b).multiply(2.0*position).add(a.multiply(1.5*index).subtract(b).multiply(2.0*index)).add(c).multiply(scaling);
     }
@@ -219,9 +219,9 @@ public class KochanekBartelsInterpolation implements Interpolation {
     }
 
     private double arcLengthRecursive(int index, double remainderLeft, double remainderRight) {
-        final Vector a = coeffA[index].multiply(3.0);
-        final Vector b = coeffB[index].multiply(2.0);
-        final Vector c = coeffC[index];
+        final Vector3d a = coeffA[index].multiply(3.0);
+        final Vector3d b = coeffB[index].multiply(2.0);
+        final Vector3d c = coeffC[index];
 
         final int nPoints = 8;
 

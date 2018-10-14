@@ -23,13 +23,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.CompoundTagBuilder;
-import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.EntityFunction;
 import com.sk89q.worldedit.internal.helper.MCDirections;
+import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.Vector3d;
 import com.sk89q.worldedit.math.transform.Transform;
 import com.sk89q.worldedit.util.Direction;
 import com.sk89q.worldedit.util.Direction.Flag;
@@ -42,8 +43,8 @@ import com.sk89q.worldedit.util.Location;
 public class ExtentEntityCopy implements EntityFunction {
 
     private final Extent destination;
-    private final Vector from;
-    private final Vector to;
+    private final Vector3d from;
+    private final Vector3d to;
     private final Transform transform;
     private boolean removing;
 
@@ -55,7 +56,7 @@ public class ExtentEntityCopy implements EntityFunction {
      * @param to the destination position
      * @param transform the transformation to apply to both position and orientation
      */
-    public ExtentEntityCopy(Vector from, Extent destination, Vector to, Transform transform) {
+    public ExtentEntityCopy(Vector3d from, Extent destination, Vector3d to, Transform transform) {
         checkNotNull(from);
         checkNotNull(destination);
         checkNotNull(to);
@@ -91,13 +92,13 @@ public class ExtentEntityCopy implements EntityFunction {
             Location newLocation;
             Location location = entity.getLocation();
 
-            Vector pivot = from.round().add(0.5, 0.5, 0.5);
-            Vector newPosition = transform.apply(location.toVector().subtract(pivot));
-            Vector newDirection;
+            Vector3d pivot = from.round().add(0.5, 0.5, 0.5);
+            Vector3d newPosition = transform.apply(location.toVector().subtract(pivot));
+            Vector3d newDirection;
 
             newDirection = transform.isIdentity() ?
                     entity.getLocation().getDirection()
-                    : transform.apply(location.getDirection()).subtract(transform.apply(Vector.ZERO)).normalize();
+                    : transform.apply(location.getDirection()).subtract(transform.apply(Vector3d.ZERO)).normalize();
             newLocation = new Location(destination, newPosition.add(to.round().add(0.5, 0.5, 0.5)), newDirection);
 
             // Some entities store their position data in NBT
@@ -134,8 +135,8 @@ public class ExtentEntityCopy implements EntityFunction {
             boolean hasFacing = tag.containsKey("Facing");
 
             if (hasTilePosition) {
-                Vector tilePosition = new Vector(tag.asInt("TileX"), tag.asInt("TileY"), tag.asInt("TileZ"));
-                Vector newTilePosition = transform.apply(tilePosition.subtract(from)).add(to);
+                Vector3d tilePosition = new Vector3d(tag.asInt("TileX"), tag.asInt("TileY"), tag.asInt("TileZ"));
+                BlockVector3d newTilePosition = transform.apply(tilePosition.subtract(from)).add(to).toBlockPoint();
 
                 CompoundTagBuilder builder = tag.createBuilder()
                         .putInt("TileX", newTilePosition.getBlockX())
@@ -155,7 +156,7 @@ public class ExtentEntityCopy implements EntityFunction {
                     Direction direction = MCDirections.fromHanging(d);
 
                     if (direction != null) {
-                        Vector vector = transform.apply(direction.toVector()).subtract(transform.apply(Vector.ZERO)).normalize();
+                        Vector3d vector = transform.apply(direction.toVector()).subtract(transform.apply(Vector3d.ZERO)).normalize();
                         Direction newDirection = Direction.findClosest(vector, Flag.CARDINAL);
 
                         if (newDirection != null) {
