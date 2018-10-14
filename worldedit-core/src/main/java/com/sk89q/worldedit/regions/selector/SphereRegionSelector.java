@@ -21,8 +21,8 @@ package com.sk89q.worldedit.regions.selector;
 
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.extension.platform.Actor;
-import com.sk89q.worldedit.math.BlockVector3d;
-import com.sk89q.worldedit.math.Vector3d;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.math.Vector3;
 import com.sk89q.worldedit.regions.RegionSelector;
 import com.sk89q.worldedit.regions.selector.limit.SelectorLimits;
 import com.sk89q.worldedit.world.World;
@@ -57,9 +57,9 @@ public class SphereRegionSelector extends EllipsoidRegionSelector {
      */
     public SphereRegionSelector(RegionSelector oldSelector) {
         super(oldSelector);
-        final Vector3d radius = region.getRadius();
+        final Vector3 radius = region.getRadius();
         final double radiusScalar = Math.max(Math.max(radius.getX(), radius.getY()), radius.getZ());
-        region.setRadius(new Vector3d(radiusScalar, radiusScalar, radiusScalar));
+        region.setRadius(new Vector3(radiusScalar, radiusScalar, radiusScalar));
     }
 
     /**
@@ -69,24 +69,24 @@ public class SphereRegionSelector extends EllipsoidRegionSelector {
      * @param center the center position
      * @param radius the radius
      */
-    public SphereRegionSelector(@Nullable World world, BlockVector3d center, int radius) {
-        super(world, center, new Vector3d(radius, radius, radius));
+    public SphereRegionSelector(@Nullable World world, BlockVector3 center, int radius) {
+        super(world, center, new Vector3(radius, radius, radius));
     }
 
     @Override
-    public boolean selectSecondary(BlockVector3d position, SelectorLimits limits) {
+    public boolean selectSecondary(BlockVector3 position, SelectorLimits limits) {
         if (!started) {
             return false;
         }
 
-        final double radiusScalar = Math.ceil(position.toVector3d().distance(region.getCenter()));
-        region.setRadius(new Vector3d(radiusScalar, radiusScalar, radiusScalar));
+        final double radiusScalar = Math.ceil(position.toVector3().distance(region.getCenter()));
+        region.setRadius(new Vector3(radiusScalar, radiusScalar, radiusScalar));
 
         return true;
     }
 
     @Override
-    public void explainSecondarySelection(Actor player, LocalSession session, BlockVector3d pos) {
+    public void explainSecondarySelection(Actor player, LocalSession session, BlockVector3 pos) {
         if (isDefined()) {
             player.print("Radius set to " + region.getRadius().getX() + " (" + region.getArea() + ").");
         } else {

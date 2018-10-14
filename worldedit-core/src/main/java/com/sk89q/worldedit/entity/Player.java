@@ -24,8 +24,8 @@ import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseItemStack;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
-import com.sk89q.worldedit.math.BlockVector3d;
-import com.sk89q.worldedit.math.Vector3d;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.math.Vector3;
 import com.sk89q.worldedit.util.HandSide;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.World;
@@ -257,14 +257,14 @@ public interface Player extends Entity, Actor {
      * @param pitch the pitch (up/down) of the player's view in degrees
      * @param yaw the yaw (left/right) of the player's view in degrees
      */
-    void setPosition(Vector3d pos, float pitch, float yaw);
+    void setPosition(Vector3 pos, float pitch, float yaw);
 
     /**
      * Move the player.
      *
      * @param pos where to move them
      */
-    void setPosition(Vector3d pos);
+    void setPosition(Vector3 pos);
 
     /**
      * Sends a fake block to the client.
@@ -276,5 +276,5 @@ public interface Player extends Entity, Actor {
      * @param pos The position of the block
      * @param block The block to send, null to reset
      */
-    void sendFakeBlock(BlockVector3d pos, @Nullable BlockStateHolder block);
+    void sendFakeBlock(BlockVector3 pos, @Nullable BlockStateHolder block);
 }

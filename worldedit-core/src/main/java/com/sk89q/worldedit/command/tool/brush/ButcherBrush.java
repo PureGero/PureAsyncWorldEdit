@@ -26,7 +26,7 @@ import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.function.visitor.EntityVisitor;
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.regions.CylinderRegion;
 
 import java.util.List;
@@ -40,7 +40,7 @@ public class ButcherBrush implements Brush {
     }
 
     @Override
-    public void build(EditSession editSession, BlockVector3d position, Pattern pattern, double size) throws MaxChangedBlocksException {
+    public void build(EditSession editSession, BlockVector3 position, Pattern pattern, double size) throws MaxChangedBlocksException {
         CylinderRegion region = CylinderRegion.createRadius(editSession, position, size);
         List<? extends Entity> entities = editSession.getEntities(region);
         Operations.completeLegacy(new EntityVisitor(entities.iterator(), flags.createFunction()));

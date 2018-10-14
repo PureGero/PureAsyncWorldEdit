@@ -21,9 +21,9 @@ package com.sk89q.worldedit.session.request;
 
 import com.sk89q.worldedit.IncompleteRegionException;
 import com.sk89q.worldedit.LocalSession;
-import com.sk89q.worldedit.math.BlockVector2d;
-import com.sk89q.worldedit.math.BlockVector3d;
-import com.sk89q.worldedit.math.Vector3d;
+import com.sk89q.worldedit.math.BlockVector2;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.math.Vector3;
 import com.sk89q.worldedit.regions.NullRegion;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionOperationException;
@@ -63,17 +63,17 @@ public class RequestSelection implements Region {
     }
 
     @Override
-    public BlockVector3d getMinimumPoint() {
+    public BlockVector3 getMinimumPoint() {
         return getRegion().getMinimumPoint();
     }
 
     @Override
-    public BlockVector3d getMaximumPoint() {
+    public BlockVector3 getMaximumPoint() {
         return getRegion().getMaximumPoint();
     }
 
     @Override
-    public Vector3d getCenter() {
+    public Vector3 getCenter() {
         return getRegion().getCenter();
     }
 
@@ -98,32 +98,32 @@ public class RequestSelection implements Region {
     }
 
     @Override
-    public void expand(BlockVector3d... changes) throws RegionOperationException {
+    public void expand(BlockVector3... changes) throws RegionOperationException {
         getRegion().expand(changes);
     }
 
     @Override
-    public void contract(BlockVector3d... changes) throws RegionOperationException {
+    public void contract(BlockVector3... changes) throws RegionOperationException {
         getRegion().contract(changes);
     }
 
     @Override
-    public void shift(BlockVector3d change) throws RegionOperationException {
+    public void shift(BlockVector3 change) throws RegionOperationException {
         getRegion().shift(change);
     }
 
     @Override
-    public boolean contains(BlockVector3d position) {
+    public boolean contains(BlockVector3 position) {
         return getRegion().contains(position);
     }
 
     @Override
-    public Set<BlockVector2d> getChunks() {
+    public Set<BlockVector2> getChunks() {
         return getRegion().getChunks();
     }
 
     @Override
-    public Set<BlockVector3d> getChunkCubes() {
+    public Set<BlockVector3> getChunkCubes() {
         return getRegion().getChunkCubes();
     }
 
@@ -143,12 +143,12 @@ public class RequestSelection implements Region {
     }
 
     @Override
-    public List<BlockVector2d> polygonize(int maxPoints) {
+    public List<BlockVector2> polygonize(int maxPoints) {
         return getRegion().polygonize(maxPoints);
     }
 
     @Override
-    public Iterator<BlockVector3d> iterator() {
+    public Iterator<BlockVector3> iterator() {
         return getRegion().iterator();
     }
 

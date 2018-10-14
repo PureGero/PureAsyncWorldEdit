@@ -26,8 +26,8 @@ import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.OperationQueue;
-import com.sk89q.worldedit.math.BlockVector2d;
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector2;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.biome.BaseBiome;
@@ -66,17 +66,17 @@ public abstract class AbstractDelegateExtent implements Extent {
     }
 
     @Override
-    public BlockState getBlock(BlockVector3d position) {
+    public BlockState getBlock(BlockVector3 position) {
         return extent.getBlock(position);
     }
 
     @Override
-    public BaseBlock getFullBlock(BlockVector3d position) {
+    public BaseBlock getFullBlock(BlockVector3 position) {
         return extent.getFullBlock(position);
     }
 
     @Override
-    public boolean setBlock(BlockVector3d location, BlockStateHolder block) throws WorldEditException {
+    public boolean setBlock(BlockVector3 location, BlockStateHolder block) throws WorldEditException {
         return extent.setBlock(location, block);
     }
 
@@ -97,22 +97,22 @@ public abstract class AbstractDelegateExtent implements Extent {
     }
 
     @Override
-    public BaseBiome getBiome(BlockVector2d position) {
+    public BaseBiome getBiome(BlockVector2 position) {
         return extent.getBiome(position);
     }
 
     @Override
-    public boolean setBiome(BlockVector2d position, BaseBiome biome) {
+    public boolean setBiome(BlockVector2 position, BaseBiome biome) {
         return extent.setBiome(position, biome);
     }
 
     @Override
-    public BlockVector3d getMinimumPoint() {
+    public BlockVector3 getMinimumPoint() {
         return extent.getMinimumPoint();
     }
 
     @Override
-    public BlockVector3d getMaximumPoint() {
+    public BlockVector3 getMaximumPoint() {
         return extent.getMaximumPoint();
     }
 

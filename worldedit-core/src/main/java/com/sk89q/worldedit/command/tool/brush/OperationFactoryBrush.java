@@ -26,7 +26,7 @@ import com.sk89q.worldedit.function.EditContext;
 import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.pattern.Pattern;
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.regions.factory.RegionFactory;
 
 public class OperationFactoryBrush implements Brush {
@@ -40,7 +40,7 @@ public class OperationFactoryBrush implements Brush {
     }
 
     @Override
-    public void build(EditSession editSession, BlockVector3d position, Pattern pattern, double size) throws MaxChangedBlocksException {
+    public void build(EditSession editSession, BlockVector3 position, Pattern pattern, double size) throws MaxChangedBlocksException {
         EditContext context = new EditContext();
         context.setDestination(editSession);
         context.setRegion(regionFactory.createCenteredAt(position, size));

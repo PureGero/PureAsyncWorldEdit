@@ -21,9 +21,9 @@ package com.sk89q.worldedit.regions;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.sk89q.worldedit.math.BlockVector2d;
-import com.sk89q.worldedit.math.BlockVector3d;
-import com.sk89q.worldedit.math.Vector3d;
+import com.sk89q.worldedit.math.BlockVector2;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.math.Vector3;
 import com.sk89q.worldedit.math.transform.Identity;
 import com.sk89q.worldedit.math.transform.Transform;
 import com.sk89q.worldedit.world.World;
@@ -98,17 +98,17 @@ public class TransformRegion extends AbstractRegion {
     }
 
     @Override
-    public BlockVector3d getMinimumPoint() {
-        return transform.apply(region.getMinimumPoint().toVector3d()).toBlockPoint();
+    public BlockVector3 getMinimumPoint() {
+        return transform.apply(region.getMinimumPoint().toVector3()).toBlockPoint();
     }
 
     @Override
-    public BlockVector3d getMaximumPoint() {
-        return transform.apply(region.getMaximumPoint().toVector3d()).toBlockPoint();
+    public BlockVector3 getMaximumPoint() {
+        return transform.apply(region.getMaximumPoint().toVector3()).toBlockPoint();
     }
 
     @Override
-    public Vector3d getCenter() {
+    public Vector3 getCenter() {
         return transform.apply(region.getCenter());
     }
 
@@ -133,50 +133,50 @@ public class TransformRegion extends AbstractRegion {
     }
 
     @Override
-    public void expand(BlockVector3d... changes) throws RegionOperationException {
+    public void expand(BlockVector3... changes) throws RegionOperationException {
         throw new RegionOperationException("Can't expand a TransformedRegion");
     }
 
     @Override
-    public void contract(BlockVector3d... changes) throws RegionOperationException {
+    public void contract(BlockVector3... changes) throws RegionOperationException {
         throw new RegionOperationException("Can't contract a TransformedRegion");
     }
 
     @Override
-    public void shift(BlockVector3d change) throws RegionOperationException {
+    public void shift(BlockVector3 change) throws RegionOperationException {
         throw new RegionOperationException("Can't change a TransformedRegion");
     }
 
     @Override
-    public boolean contains(BlockVector3d position) {
-        return region.contains(transform.inverse().apply(position.toVector3d()).toBlockPoint());
+    public boolean contains(BlockVector3 position) {
+        return region.contains(transform.inverse().apply(position.toVector3()).toBlockPoint());
     }
 
     @Override
-    public List<BlockVector2d> polygonize(int maxPoints) {
-        List<BlockVector2d> origPoints = region.polygonize(maxPoints);
-        List<BlockVector2d> transformedPoints = new ArrayList<>();
-        for (BlockVector2d vector : origPoints) {
-            transformedPoints.add(transform.apply(vector.toVector3d(0)).toVector2d().toBlockPoint());
+    public List<BlockVector2> polygonize(int maxPoints) {
+        List<BlockVector2> origPoints = region.polygonize(maxPoints);
+        List<BlockVector2> transformedPoints = new ArrayList<>();
+        for (BlockVector2 vector : origPoints) {
+            transformedPoints.add(transform.apply(vector.toVector3(0)).toVector2().toBlockPoint());
         }
         return transformedPoints;
     }
 
     @Override
-    public Iterator<BlockVector3d> iterator() {
-        final Iterator<BlockVector3d> it = region.iterator();
+    public Iterator<BlockVector3> iterator() {
+        final Iterator<BlockVector3> it = region.iterator();
 
-        return new Iterator<BlockVector3d>() {
+        return new Iterator<BlockVector3>() {
             @Override
             public boolean hasNext() {
                 return it.hasNext();
             }
 
             @Override
-            public BlockVector3d next() {
-                BlockVector3d next = it.next();
+            public BlockVector3 next() {
+                BlockVector3 next = it.next();
                 if (next != null) {
-                    return transform.apply(next.toVector3d()).toBlockPoint();
+                    return transform.apply(next.toVector3()).toBlockPoint();
                 } else {
                     return null;
                 }

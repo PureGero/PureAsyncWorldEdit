@@ -23,10 +23,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.function.mask.Mask;
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector3;
 
 /**
- * Passes calls to {@link #apply(BlockVector3d)} to the
+ * Passes calls to {@link #apply(BlockVector3)} to the
  * delegate {@link com.sk89q.worldedit.function.RegionFunction} if they
  * match the given mask.
  */
@@ -49,7 +49,7 @@ public class RegionMaskingFilter implements RegionFunction {
     }
 
     @Override
-    public boolean apply(BlockVector3d position) throws WorldEditException {
+    public boolean apply(BlockVector3 position) throws WorldEditException {
         return mask.test(position) && function.apply(position);
     }
 

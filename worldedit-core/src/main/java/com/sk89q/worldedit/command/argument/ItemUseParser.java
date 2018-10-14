@@ -27,7 +27,7 @@ import com.sk89q.worldedit.blocks.BaseItem;
 import com.sk89q.worldedit.function.Contextual;
 import com.sk89q.worldedit.function.EditContext;
 import com.sk89q.worldedit.function.RegionFunction;
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.util.Direction;
 import com.sk89q.worldedit.util.command.argument.CommandArgs;
 import com.sk89q.worldedit.util.command.composition.SimpleCommand;
@@ -82,7 +82,7 @@ public class ItemUseParser extends SimpleCommand<Contextual<RegionFunction>> {
         }
 
         @Override
-        public boolean apply(BlockVector3d position) throws WorldEditException {
+        public boolean apply(BlockVector3 position) throws WorldEditException {
             return world.useItem(position, item, Direction.UP);
         }
     }

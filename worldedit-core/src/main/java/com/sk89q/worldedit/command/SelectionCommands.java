@@ -36,8 +36,8 @@ import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extension.input.ParserContext;
 import com.sk89q.worldedit.extension.platform.permission.ActorSelectorLimits;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
-import com.sk89q.worldedit.math.BlockVector2d;
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector2;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionOperationException;
 import com.sk89q.worldedit.regions.RegionSelector;
@@ -215,23 +215,23 @@ public class SelectionCommands {
     @Logging(POSITION)
     @CommandPermissions("worldedit.selection.chunk")
     public void chunk(Player player, LocalSession session, EditSession editSession, CommandContext args) throws WorldEditException {
-        final BlockVector3d min;
-        final BlockVector3d max;
+        final BlockVector3 min;
+        final BlockVector3 max;
         final World world = player.getWorld();
         if (args.hasFlag('s')) {
             Region region = session.getSelection(world);
 
-            final BlockVector2d min2D = ChunkStore.toChunk(region.getMinimumPoint());
-            final BlockVector2d max2D = ChunkStore.toChunk(region.getMaximumPoint());
+            final BlockVector2 min2D = ChunkStore.toChunk(region.getMinimumPoint());
+            final BlockVector2 max2D = ChunkStore.toChunk(region.getMaximumPoint());
 
-            min = new BlockVector3d(min2D.getBlockX() * 16, 0, min2D.getBlockZ() * 16);
-            max = new BlockVector3d(max2D.getBlockX() * 16 + 15, world.getMaxY(), max2D.getBlockZ() * 16 + 15);
+            min = new BlockVector3(min2D.getBlockX() * 16, 0, min2D.getBlockZ() * 16);
+            max = new BlockVector3(max2D.getBlockX() * 16 + 15, world.getMaxY(), max2D.getBlockZ() * 16 + 15);
 
             player.print("Chunks selected: ("
                     + min2D.getBlockX() + ", " + min2D.getBlockZ() + ") - ("
                     + max2D.getBlockX() + ", " + max2D.getBlockZ() + ")");
         } else {
-            final BlockVector2d min2D;
+            final BlockVector2 min2D;
             if (args.argsLength() == 1) {
                 // coords specified
                 String[] coords = args.getString(0).split(",");
@@ -240,14 +240,14 @@ public class SelectionCommands {
                 }
                 int x = Integer.parseInt(coords[0]);
                 int z = Integer.parseInt(coords[1]);
-                BlockVector2d pos = new BlockVector2d(x, z);
-                min2D = (args.hasFlag('c')) ? pos : ChunkStore.toChunk(pos.toBlockVector3d());
+                BlockVector2 pos = new BlockVector2(x, z);
+                min2D = (args.hasFlag('c')) ? pos : ChunkStore.toChunk(pos.toBlockVector3());
             } else {
                 // use player loc
                 min2D = ChunkStore.toChunk(player.getBlockIn().toVector().toBlockPoint());
             }
 
-            min = new BlockVector3d(min2D.getBlockX() * 16, 0, min2D.getBlockZ() * 16);
+            min = new BlockVector3(min2D.getBlockX() * 16, 0, min2D.getBlockZ() * 16);
             max = min.add(15, world.getMaxY(), 15);
 
             player.print("Chunk selected: "
@@ -320,8 +320,8 @@ public class SelectionCommands {
             try {
                 int oldSize = region.getArea();
                 region.expand(
-                        new BlockVector3d(0, (player.getWorld().getMaxY() + 1), 0),
-                        new BlockVector3d(0, -(player.getWorld().getMaxY() + 1), 0));
+                        new BlockVector3(0, (player.getWorld().getMaxY() + 1), 0),
+                        new BlockVector3(0, -(player.getWorld().getMaxY() + 1), 0));
                 session.getRegionSelector(player.getWorld()).learnChanges();
                 int newSize = region.getArea();
                 session.getRegionSelector(player.getWorld()).explainRegionAdjust(player, session);
@@ -334,7 +334,7 @@ public class SelectionCommands {
             return;
         }
 
-        List<BlockVector3d> dirs = new ArrayList<>();
+        List<BlockVector3> dirs = new ArrayList<>();
         int change = args.getInteger(0);
         int reverseChange = 0;
 
@@ -379,11 +379,11 @@ public class SelectionCommands {
         int oldSize = region.getArea();
 
         if (reverseChange == 0) {
-            for (BlockVector3d dir : dirs) {
+            for (BlockVector3 dir : dirs) {
                 region.expand(dir.multiply(change));
             }
         } else {
-            for (BlockVector3d dir : dirs) {
+            for (BlockVector3 dir : dirs) {
                 region.expand(dir.multiply(change), dir.multiply(-reverseChange));
             }
         }
@@ -407,7 +407,7 @@ public class SelectionCommands {
     @CommandPermissions("worldedit.selection.contract")
     public void contract(Player player, LocalSession session, EditSession editSession, CommandContext args) throws WorldEditException {
 
-        List<BlockVector3d> dirs = new ArrayList<>();
+        List<BlockVector3> dirs = new ArrayList<>();
         int change = args.getInteger(0);
         int reverseChange = 0;
 
@@ -451,11 +451,11 @@ public class SelectionCommands {
             Region region = session.getSelection(player.getWorld());
             int oldSize = region.getArea();
             if (reverseChange == 0) {
-                for (BlockVector3d dir : dirs) {
+                for (BlockVector3 dir : dirs) {
                     region.contract(dir.multiply(change));
                 }
             } else {
-                for (BlockVector3d dir : dirs) {
+                for (BlockVector3 dir : dirs) {
                     region.contract(dir.multiply(change), dir.multiply(-reverseChange));
                 }
             }
@@ -482,7 +482,7 @@ public class SelectionCommands {
     @CommandPermissions("worldedit.selection.shift")
     public void shift(Player player, LocalSession session, EditSession editSession, CommandContext args) throws WorldEditException {
 
-        List<BlockVector3d> dirs = new ArrayList<>();
+        List<BlockVector3> dirs = new ArrayList<>();
         int change = args.getInteger(0);
         if (args.argsLength() == 2) {
             if (args.getString(1).contains(",")) {
@@ -499,7 +499,7 @@ public class SelectionCommands {
         try {
             Region region = session.getSelection(player.getWorld());
 
-            for (BlockVector3d dir : dirs) {
+            for (BlockVector3 dir : dirs) {
                 region.shift(dir.multiply(change));
             }
 
@@ -559,23 +559,23 @@ public class SelectionCommands {
         player.print("Region inset.");
     }
 
-    private BlockVector3d[] getChangesForEachDir(CommandContext args) {
-        List<BlockVector3d> changes = new ArrayList<>(6);
+    private BlockVector3[] getChangesForEachDir(CommandContext args) {
+        List<BlockVector3> changes = new ArrayList<>(6);
         int change = args.getInteger(0);
 
         if (!args.hasFlag('h')) {
-            changes.add((new BlockVector3d(0, 1, 0)).multiply(change));
-            changes.add((new BlockVector3d(0, -1, 0)).multiply(change));
+            changes.add((new BlockVector3(0, 1, 0)).multiply(change));
+            changes.add((new BlockVector3(0, -1, 0)).multiply(change));
         }
 
         if (!args.hasFlag('v')) {
-            changes.add((new BlockVector3d(1, 0, 0)).multiply(change));
-            changes.add((new BlockVector3d(-1, 0, 0)).multiply(change));
-            changes.add((new BlockVector3d(0, 0, 1)).multiply(change));
-            changes.add((new BlockVector3d(0, 0, -1)).multiply(change));
+            changes.add((new BlockVector3(1, 0, 0)).multiply(change));
+            changes.add((new BlockVector3(-1, 0, 0)).multiply(change));
+            changes.add((new BlockVector3(0, 0, 1)).multiply(change));
+            changes.add((new BlockVector3(0, 0, -1)).multiply(change));
         }
 
-        return changes.toArray(new BlockVector3d[0]);
+        return changes.toArray(new BlockVector3[0]);
     }
 
     @Command(
@@ -592,18 +592,18 @@ public class SelectionCommands {
             ClipboardHolder holder = session.getClipboard();
             Clipboard clipboard = holder.getClipboard();
             Region region = clipboard.getRegion();
-            BlockVector3d size = region.getMaximumPoint().subtract(region.getMinimumPoint());
-            BlockVector3d origin = clipboard.getOrigin();
+            BlockVector3 size = region.getMaximumPoint().subtract(region.getMinimumPoint());
+            BlockVector3 origin = clipboard.getOrigin();
 
             player.print("Cuboid dimensions (max - min): " + size);
             player.print("Offset: " + origin);
-            player.print("Cuboid distance: " + size.distance(BlockVector3d.ONE));
+            player.print("Cuboid distance: " + size.distance(BlockVector3.ONE));
             player.print("# of blocks: " + (int) (size.getX() * size.getY() * size.getZ()));
             return;
         }
 
         Region region = session.getSelection(player.getWorld());
-        BlockVector3d size = region.getMaximumPoint()
+        BlockVector3 size = region.getMaximumPoint()
                 .subtract(region.getMinimumPoint())
                 .add(1, 1, 1);
 

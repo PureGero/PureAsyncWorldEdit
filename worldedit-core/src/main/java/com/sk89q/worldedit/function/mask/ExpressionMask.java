@@ -24,7 +24,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.sk89q.worldedit.internal.expression.Expression;
 import com.sk89q.worldedit.internal.expression.ExpressionException;
 import com.sk89q.worldedit.internal.expression.runtime.EvaluationException;
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.regions.shape.WorldEditExpressionEnvironment;
 
 import javax.annotation.Nullable;
@@ -61,10 +61,10 @@ public class ExpressionMask extends AbstractMask {
     }
 
     @Override
-    public boolean test(BlockVector3d vector) {
+    public boolean test(BlockVector3 vector) {
         try {
             if (expression.getEnvironment() instanceof WorldEditExpressionEnvironment) {
-                ((WorldEditExpressionEnvironment) expression.getEnvironment()).setCurrentBlock(vector.toVector3d());
+                ((WorldEditExpressionEnvironment) expression.getEnvironment()).setCurrentBlock(vector.toVector3());
             }
             return expression.evaluate(vector.getX(), vector.getY(), vector.getZ()) > 0;
         } catch (EvaluationException e) {

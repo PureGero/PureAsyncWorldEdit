@@ -21,15 +21,16 @@ package com.sk89q.worldedit.sponge;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.flowpowered.math.vector.Vector3d;
 import com.flowpowered.math.vector.Vector3i;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseItemStack;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
-import com.sk89q.worldedit.math.BlockVector2d;
-import com.sk89q.worldedit.math.BlockVector3d;
-import com.sk89q.worldedit.math.Vector3d;
+import com.sk89q.worldedit.math.BlockVector2;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.math.Vector3;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.registry.state.Property;
 import com.sk89q.worldedit.util.Location;
@@ -135,7 +136,7 @@ public abstract class SpongeWorld extends AbstractWorld {
     private static final BlockSnapshot.Builder builder = BlockSnapshot.builder();
 
     @Override
-    public boolean setBlock(BlockVector3d position, BlockStateHolder block, boolean notifyAndLight) throws WorldEditException {
+    public boolean setBlock(BlockVector3 position, BlockStateHolder block, boolean notifyAndLight) throws WorldEditException {
         checkNotNull(position);
         checkNotNull(block);
 
@@ -168,7 +169,7 @@ public abstract class SpongeWorld extends AbstractWorld {
     }
 
     @Override
-    public int getBlockLightLevel(BlockVector3d position) {
+    public int getBlockLightLevel(BlockVector3 position) {
         checkNotNull(position);
 
         BlockState state = getWorld().getBlock(new Vector3i(position.getX(), position.getY(), position.getZ()));
@@ -186,13 +187,13 @@ public abstract class SpongeWorld extends AbstractWorld {
     }
 
     @Override
-    public BaseBiome getBiome(BlockVector2d position) {
+    public BaseBiome getBiome(BlockVector2 position) {
         checkNotNull(position);
         return new BaseBiome(SpongeWorldEdit.inst().getAdapter().resolve(getWorld().getBiome(position.getBlockX(), 0, position.getBlockZ())));
     }
 
     @Override
-    public boolean setBiome(BlockVector2d position, BaseBiome biome) {
+    public boolean setBiome(BlockVector2 position, BaseBiome biome) {
         checkNotNull(position);
         checkNotNull(biome);
 
@@ -201,7 +202,7 @@ public abstract class SpongeWorld extends AbstractWorld {
     }
 
     @Override
-    public void dropItem(Vector3d position, BaseItemStack item) {
+    public void dropItem(Vector3 position, BaseItemStack item) {
         checkNotNull(position);
         checkNotNull(item);
 
@@ -211,7 +212,7 @@ public abstract class SpongeWorld extends AbstractWorld {
 
         org.spongepowered.api.entity.Entity entity = getWorld().createEntity(
                 EntityTypes.ITEM,
-                new com.flowpowered.math.vector.Vector3d(position.getX(), position.getY(), position.getZ())
+                new Vector3d(position.getX(), position.getY(), position.getZ())
         );
 
         entity.offer(Keys.REPRESENTED_ITEM, SpongeWorldEdit.toSpongeItemStack(item).createSnapshot());
@@ -219,7 +220,7 @@ public abstract class SpongeWorld extends AbstractWorld {
     }
 
     @Override
-    public void simulateBlockMine(BlockVector3d position) {
+    public void simulateBlockMine(BlockVector3 position) {
         // TODO
     }
 
@@ -248,7 +249,7 @@ public abstract class SpongeWorld extends AbstractWorld {
         List<Entity> entities = new ArrayList<>();
         for (org.spongepowered.api.entity.Entity entity : getWorld().getEntities()) {
             org.spongepowered.api.world.Location<World> loc = entity.getLocation();
-            if (region.contains(new BlockVector3d(loc.getX(), loc.getY(), loc.getZ()))) {
+            if (region.contains(new BlockVector3(loc.getX(), loc.getY(), loc.getZ()))) {
                 entities.add(new SpongeEntity(entity));
             }
         }
@@ -272,7 +273,7 @@ public abstract class SpongeWorld extends AbstractWorld {
         World world = getWorld();
 
         EntityType entityType = Sponge.getRegistry().getType(EntityType.class, entity.getType().getId()).get();
-        com.flowpowered.math.vector.Vector3d pos = new com.flowpowered.math.vector.Vector3d(location.getX(), location.getY(), location.getZ());
+        Vector3d pos = new Vector3d(location.getX(), location.getY(), location.getZ());
 
         org.spongepowered.api.entity.Entity newEnt = world.createEntity(entityType, pos);
         if (entity.hasNbtData()) {
@@ -280,11 +281,11 @@ public abstract class SpongeWorld extends AbstractWorld {
         }
 
         // Overwrite any data set by the NBT application
-        Vector3d dir = location.getDirection();
+        Vector3 dir = location.getDirection();
 
         newEnt.setLocationAndRotation(
                 new org.spongepowered.api.world.Location<>(getWorld(), pos),
-                new com.flowpowered.math.vector.Vector3d(dir.getX(), dir.getY(), dir.getZ())
+                new Vector3d(dir.getX(), dir.getY(), dir.getZ())
         );
 
         if (world.spawnEntity(newEnt)) {

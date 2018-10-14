@@ -22,7 +22,7 @@ package com.sk89q.worldedit.world.storage;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.Tag;
-import com.sk89q.worldedit.math.BlockVector2d;
+import com.sk89q.worldedit.math.BlockVector2;
 import com.sk89q.worldedit.world.DataException;
 import com.sk89q.worldedit.world.World;
 
@@ -40,14 +40,14 @@ public abstract class McRegionChunkStore extends ChunkStore {
      * @param position chunk position
      * @return the filename
      */
-    public static String getFilename(BlockVector2d position) {
+    public static String getFilename(BlockVector2 position) {
         int x = position.getBlockX();
         int z = position.getBlockZ();
 
         return "r." + (x >> 5) + "." + (z >> 5) + ".mca";
     }
 
-    protected McRegionReader getReader(BlockVector2d pos, String worldname) throws DataException, IOException {
+    protected McRegionReader getReader(BlockVector2 pos, String worldname) throws DataException, IOException {
         String filename = getFilename(pos);
         if (curFilename != null) {
             if (curFilename.equals(filename)) {
@@ -66,7 +66,7 @@ public abstract class McRegionChunkStore extends ChunkStore {
     }
 
     @Override
-    public CompoundTag getChunkTag(BlockVector2d position, World world) throws DataException, IOException {
+    public CompoundTag getChunkTag(BlockVector2 position, World world) throws DataException, IOException {
         McRegionReader reader = getReader(position, world.getName());
 
         InputStream stream = reader.getChunkInputStream(position);

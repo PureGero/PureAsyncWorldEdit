@@ -22,7 +22,7 @@ package com.sk89q.worldedit.function.pattern;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.sk89q.worldedit.extent.Extent;
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.world.block.BlockStateHolder;
 
 /**
@@ -31,7 +31,7 @@ import com.sk89q.worldedit.world.block.BlockStateHolder;
 public class RepeatingExtentPattern extends AbstractPattern {
 
     private Extent extent;
-    private BlockVector3d offset;
+    private BlockVector3 offset;
 
     /**
      * Create a new instance.
@@ -39,7 +39,7 @@ public class RepeatingExtentPattern extends AbstractPattern {
      * @param extent the extent
      * @param offset the offset
      */
-    public RepeatingExtentPattern(Extent extent, BlockVector3d offset) {
+    public RepeatingExtentPattern(Extent extent, BlockVector3 offset) {
         setExtent(extent);
         setOffset(offset);
     }
@@ -68,7 +68,7 @@ public class RepeatingExtentPattern extends AbstractPattern {
      *
      * @return the offset
      */
-    public BlockVector3d getOffset() {
+    public BlockVector3 getOffset() {
         return offset;
     }
 
@@ -77,19 +77,19 @@ public class RepeatingExtentPattern extends AbstractPattern {
      *
      * @param offset the offset
      */
-    public void setOffset(BlockVector3d offset) {
+    public void setOffset(BlockVector3 offset) {
         checkNotNull(offset);
         this.offset = offset;
     }
 
     @Override
-    public BlockStateHolder apply(BlockVector3d position) {
-        BlockVector3d base = position.add(offset);
-        BlockVector3d size = extent.getMaximumPoint().subtract(extent.getMinimumPoint()).add(1, 1, 1);
+    public BlockStateHolder apply(BlockVector3 position) {
+        BlockVector3 base = position.add(offset);
+        BlockVector3 size = extent.getMaximumPoint().subtract(extent.getMinimumPoint()).add(1, 1, 1);
         int x = base.getBlockX() % size.getBlockX();
         int y = base.getBlockY() % size.getBlockY();
         int z = base.getBlockZ() % size.getBlockZ();
-        return extent.getFullBlock(new BlockVector3d(x, y, z));
+        return extent.getFullBlock(new BlockVector3(x, y, z));
     }
 
 }

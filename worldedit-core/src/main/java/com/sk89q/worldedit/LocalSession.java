@@ -40,7 +40,7 @@ import com.sk89q.worldedit.internal.cui.CUIEvent;
 import com.sk89q.worldedit.internal.cui.CUIRegion;
 import com.sk89q.worldedit.internal.cui.SelectionShapeEvent;
 import com.sk89q.worldedit.internal.cui.ServerCUIHandler;
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionSelector;
 import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
@@ -92,7 +92,7 @@ public class LocalSession {
     private transient boolean fastMode = false;
     private transient Mask mask;
     private transient TimeZone timezone = TimeZone.getDefault();
-    private transient BlockVector3d cuiTemporaryBlock;
+    private transient BlockVector3 cuiTemporaryBlock;
 
     // Saved properties
     private String lastScript;
@@ -451,7 +451,7 @@ public class LocalSession {
      * @return the position to use
      * @throws IncompleteRegionException thrown if a region is not fully selected
      */
-    public BlockVector3d getPlacementPosition(Player player) throws IncompleteRegionException {
+    public BlockVector3 getPlacementPosition(Player player) throws IncompleteRegionException {
         checkNotNull(player);
         if (!placeAtPos1) {
             return player.getBlockIn().toVector().toBlockPoint();
@@ -662,7 +662,7 @@ public class LocalSession {
         if (block != null) {
             // If it's null, we don't need to do anything. The old was already removed.
             Map<String, Tag> tags = block.getNbtData().getValue();
-            cuiTemporaryBlock = new BlockVector3d(
+            cuiTemporaryBlock = new BlockVector3(
                     ((IntTag) tags.get("x")).getValue(),
                     ((IntTag) tags.get("y")).getValue(),
                     ((IntTag) tags.get("z")).getValue()

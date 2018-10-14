@@ -21,7 +21,7 @@ package com.sk89q.worldedit.regions.selector;
 
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.extension.platform.Actor;
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.regions.RegionSelector;
 import com.sk89q.worldedit.regions.selector.limit.SelectorLimits;
 import com.sk89q.worldedit.world.World;
@@ -75,7 +75,7 @@ public class ExtendingCuboidRegionSelector extends CuboidRegionSelector {
      * @param position1 the first position
      * @param position2 the second position
      */
-    public ExtendingCuboidRegionSelector(@Nullable World world, BlockVector3d position1, BlockVector3d position2) {
+    public ExtendingCuboidRegionSelector(@Nullable World world, BlockVector3 position1, BlockVector3 position2) {
         this(world);
         position1 = position1.getMinimum(position2);
         position2 = position1.getMaximum(position2);
@@ -84,7 +84,7 @@ public class ExtendingCuboidRegionSelector extends CuboidRegionSelector {
     }
 
     @Override
-    public boolean selectPrimary(BlockVector3d position, SelectorLimits limits) {
+    public boolean selectPrimary(BlockVector3 position, SelectorLimits limits) {
         if (position1 != null && position2 != null && position.equals(position1) && position.equals(position2)) {
             return false;
         }
@@ -96,7 +96,7 @@ public class ExtendingCuboidRegionSelector extends CuboidRegionSelector {
     }
 
     @Override
-    public boolean selectSecondary(BlockVector3d position, SelectorLimits limits) {
+    public boolean selectSecondary(BlockVector3 position, SelectorLimits limits) {
         if (position1 == null || position2 == null) {
             return selectPrimary(position, limits);
         }
@@ -113,10 +113,10 @@ public class ExtendingCuboidRegionSelector extends CuboidRegionSelector {
         double y2 = Math.max(position.getY(), position2.getY());
         double z2 = Math.max(position.getZ(), position2.getZ());
 
-        final BlockVector3d o1 = position1;
-        final BlockVector3d o2 = position2;
-        position1 = new BlockVector3d(x1, y1, z1);
-        position2 = new BlockVector3d(x2, y2, z2);
+        final BlockVector3 o1 = position1;
+        final BlockVector3 o2 = position2;
+        position1 = new BlockVector3(x1, y1, z1);
+        position2 = new BlockVector3(x2, y2, z2);
         region.setPos1(position1);
         region.setPos2(position2);
 
@@ -128,14 +128,14 @@ public class ExtendingCuboidRegionSelector extends CuboidRegionSelector {
     }
 
     @Override
-    public void explainPrimarySelection(Actor player, LocalSession session, BlockVector3d pos) {
+    public void explainPrimarySelection(Actor player, LocalSession session, BlockVector3 pos) {
         player.print("Started selection at " + pos + " (" + region.getArea() + ").");
 
         explainRegionAdjust(player, session);
     }
 
     @Override
-    public void explainSecondarySelection(Actor player, LocalSession session, BlockVector3d pos) {
+    public void explainSecondarySelection(Actor player, LocalSession session, BlockVector3 pos) {
         player.print("Extended selection to encompass " + pos + " (" + region.getArea() + ").");
 
         explainRegionAdjust(player, session);

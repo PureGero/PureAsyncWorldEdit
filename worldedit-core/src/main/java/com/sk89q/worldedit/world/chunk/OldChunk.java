@@ -26,7 +26,7 @@ import com.sk89q.jnbt.ListTag;
 import com.sk89q.jnbt.NBTUtils;
 import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.WorldEdit;
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.world.DataException;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.block.BlockState;
@@ -50,7 +50,7 @@ public class OldChunk implements Chunk {
     private int rootX;
     private int rootZ;
 
-    private Map<BlockVector3d, Map<String,Tag>> tileEntities;
+    private Map<BlockVector3, Map<String,Tag>> tileEntities;
 
     /**
      * Construct the chunk with a compound tag.
@@ -126,7 +126,7 @@ public class OldChunk implements Chunk {
                 values.put(entry.getKey(), entry.getValue());
             }
 
-            BlockVector3d vec = new BlockVector3d(x, y, z);
+            BlockVector3 vec = new BlockVector3(x, y, z);
             tileEntities.put(vec, values);
         }
     }
@@ -140,7 +140,7 @@ public class OldChunk implements Chunk {
      * @return a tag
      * @throws DataException
      */
-    private CompoundTag getBlockTileEntity(BlockVector3d position) throws DataException {
+    private CompoundTag getBlockTileEntity(BlockVector3 position) throws DataException {
         if (tileEntities == null) {
             populateTileEntities();
         }
@@ -153,7 +153,7 @@ public class OldChunk implements Chunk {
     }
 
     @Override
-    public BlockStateHolder getBlock(BlockVector3d position) throws DataException {
+    public BlockStateHolder getBlock(BlockVector3 position) throws DataException {
         if(position.getY() >= 128) return BlockTypes.VOID_AIR.getDefaultState().toBaseBlock();
         int id, dataVal;
 

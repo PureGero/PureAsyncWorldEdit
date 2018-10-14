@@ -27,8 +27,8 @@ import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.extension.platform.AbstractPlayerActor;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
 import com.sk89q.worldedit.internal.cui.CUIEvent;
-import com.sk89q.worldedit.math.BlockVector3d;
-import com.sk89q.worldedit.math.Vector3d;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.math.Vector3;
 import com.sk89q.worldedit.session.SessionKey;
 import com.sk89q.worldedit.util.HandSide;
 import com.sk89q.worldedit.world.World;
@@ -117,7 +117,7 @@ public class BukkitPlayer extends AbstractPlayerActor {
     }
 
     @Override
-    public void setPosition(Vector3d pos, float pitch, float yaw) {
+    public void setPosition(Vector3 pos, float pitch, float yaw) {
         player.teleport(new Location(player.getWorld(), pos.getX(), pos.getY(),
                 pos.getZ(), yaw, pitch));
     }
@@ -175,7 +175,7 @@ public class BukkitPlayer extends AbstractPlayerActor {
             return;
         }
 
-        setPosition(new Vector3d(x + 0.5, y, z + 0.5));
+        setPosition(new Vector3(x + 0.5, y, z + 0.5));
         player.setFlying(true);
     }
 
@@ -187,7 +187,7 @@ public class BukkitPlayer extends AbstractPlayerActor {
     @Override
     public com.sk89q.worldedit.util.Location getLocation() {
         Location nativeLocation = player.getLocation();
-        Vector3d position = BukkitAdapter.asVector(nativeLocation);
+        Vector3 position = BukkitAdapter.asVector(nativeLocation);
         return new com.sk89q.worldedit.util.Location(
                 getWorld(),
                 position,
@@ -245,7 +245,7 @@ public class BukkitPlayer extends AbstractPlayerActor {
     }
 
     @Override
-    public void sendFakeBlock(BlockVector3d pos, BlockStateHolder block) {
+    public void sendFakeBlock(BlockVector3 pos, BlockStateHolder block) {
         Location loc = new Location(player.getWorld(), pos.getX(), pos.getY(), pos.getZ());
         if (block == null) {
             player.sendBlockChange(loc, player.getWorld().getBlockAt(loc).getBlockData());
@@ -254,7 +254,7 @@ public class BukkitPlayer extends AbstractPlayerActor {
             if (block instanceof BaseBlock && ((BaseBlock) block).hasNbtData()) {
                 BukkitImplAdapter adapter = WorldEditPlugin.getInstance().getBukkitImplAdapter();
                 if (adapter != null) {
-                    adapter.sendFakeNBT(player, pos.toVector3d(), ((BaseBlock) block).getNbtData());
+                    adapter.sendFakeNBT(player, pos.toVector3(), ((BaseBlock) block).getNbtData());
                     if (block.getBlockType() == BlockTypes.STRUCTURE_BLOCK) {
                         adapter.sendFakeOP(player);
                     }

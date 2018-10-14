@@ -27,7 +27,7 @@ import com.sk89q.worldedit.extent.transform.BlockTransformExtent;
 import com.sk89q.worldedit.function.mask.ExistingBlockMask;
 import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
 import com.sk89q.worldedit.function.operation.Operation;
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.math.transform.Transform;
 
 /**
@@ -39,7 +39,7 @@ public class PasteBuilder {
     private final Transform transform;
     private final Extent targetExtent;
 
-    private BlockVector3d to = BlockVector3d.ZERO;
+    private BlockVector3 to = BlockVector3.ZERO;
     private boolean ignoreAirBlocks;
 
     /**
@@ -62,7 +62,7 @@ public class PasteBuilder {
      * @param to the target location
      * @return this builder instance
      */
-    public PasteBuilder to(BlockVector3d to) {
+    public PasteBuilder to(BlockVector3 to) {
         this.to = to;
         return this;
     }

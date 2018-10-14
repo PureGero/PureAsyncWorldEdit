@@ -29,8 +29,8 @@ import com.sk89q.worldedit.blocks.BaseItemStack;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.extension.input.InputParseException;
 import com.sk89q.worldedit.extension.input.ParserContext;
-import com.sk89q.worldedit.math.BlockVector3d;
-import com.sk89q.worldedit.math.Vector3d;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.math.Vector3;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.block.BlockState;
@@ -161,7 +161,7 @@ public class BukkitAdapter {
      */
     public static Location adapt(org.bukkit.Location location) {
         checkNotNull(location);
-        Vector3d position = asVector(location);
+        Vector3 position = asVector(location);
         return new com.sk89q.worldedit.util.Location(
                 adapt(location.getWorld()),
                 position,
@@ -177,7 +177,7 @@ public class BukkitAdapter {
      */
     public static org.bukkit.Location adapt(Location location) {
         checkNotNull(location);
-        Vector3d position = location.toVector();
+        Vector3 position = location.toVector();
         return new org.bukkit.Location(
                 adapt((World) location.getExtent()),
                 position.getX(), position.getY(), position.getZ(),
@@ -192,7 +192,7 @@ public class BukkitAdapter {
      * @param position the WorldEdit position
      * @return a Bukkit location
      */
-    public static org.bukkit.Location adapt(org.bukkit.World world, Vector3d position) {
+    public static org.bukkit.Location adapt(org.bukkit.World world, Vector3 position) {
         checkNotNull(world);
         checkNotNull(position);
         return new org.bukkit.Location(
@@ -207,7 +207,7 @@ public class BukkitAdapter {
      * @param position the WorldEdit position
      * @return a Bukkit location
      */
-    public static org.bukkit.Location adapt(org.bukkit.World world, BlockVector3d position) {
+    public static org.bukkit.Location adapt(org.bukkit.World world, BlockVector3 position) {
         checkNotNull(world);
         checkNotNull(position);
         return new org.bukkit.Location(
@@ -238,9 +238,9 @@ public class BukkitAdapter {
      * @param location The Bukkit location
      * @return a WorldEdit vector
      */
-    public static Vector3d asVector(org.bukkit.Location location) {
+    public static Vector3 asVector(org.bukkit.Location location) {
         checkNotNull(location);
-        return new Vector3d(location.getX(), location.getY(), location.getZ());
+        return new Vector3(location.getX(), location.getY(), location.getZ());
     }
 
     /**
@@ -249,9 +249,9 @@ public class BukkitAdapter {
      * @param location The Bukkit location
      * @return a WorldEdit vector
      */
-    public static BlockVector3d asBlockVector(org.bukkit.Location location) {
+    public static BlockVector3 asBlockVector(org.bukkit.Location location) {
         checkNotNull(location);
-        return new BlockVector3d(location.getX(), location.getY(), location.getZ());
+        return new BlockVector3(location.getX(), location.getY(), location.getZ());
     }
 
     /**

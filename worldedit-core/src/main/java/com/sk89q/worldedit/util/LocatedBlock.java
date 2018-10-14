@@ -21,7 +21,7 @@ package com.sk89q.worldedit.util;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.world.block.BlockStateHolder;
 
 import java.util.Objects;
@@ -31,15 +31,15 @@ import java.util.Objects;
  */
 public final class LocatedBlock {
 
-    private final BlockVector3d location;
+    private final BlockVector3 location;
     private final BlockStateHolder block;
 
-    public LocatedBlock(BlockVector3d location, BlockStateHolder block) {
+    public LocatedBlock(BlockVector3 location, BlockStateHolder block) {
         this.location = checkNotNull(location);
         this.block = checkNotNull(block);
     }
 
-    public BlockVector3d getLocation() {
+    public BlockVector3 getLocation() {
         return location;
     }
 

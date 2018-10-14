@@ -21,15 +21,15 @@
 
 package com.sk89q.worldedit.internal.cui;
 
-import com.sk89q.worldedit.math.BlockVector3d;
-import com.sk89q.worldedit.math.Vector2d;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.math.Vector2;
 
 public class SelectionCylinderEvent implements CUIEvent {
 
-    protected final BlockVector3d pos;
-    protected final Vector2d radius;
+    protected final BlockVector3 pos;
+    protected final Vector2 radius;
 
-    public SelectionCylinderEvent(BlockVector3d pos, Vector2d radius) {
+    public SelectionCylinderEvent(BlockVector3 pos, Vector2 radius) {
         this.pos = pos;
         this.radius = radius;
     }

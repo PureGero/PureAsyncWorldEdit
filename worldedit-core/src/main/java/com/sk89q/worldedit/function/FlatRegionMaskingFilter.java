@@ -23,10 +23,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.function.mask.Mask2D;
-import com.sk89q.worldedit.math.BlockVector2d;
+import com.sk89q.worldedit.math.BlockVector2;
 
 /**
- * Passes calls to {@link #apply(BlockVector2d)} to the
+ * Passes calls to {@link #apply(BlockVector2)} to the
  * delegate {@link com.sk89q.worldedit.function.FlatRegionFunction} if they
  * match the given mask.
  */
@@ -50,7 +50,7 @@ public class FlatRegionMaskingFilter implements FlatRegionFunction {
     }
 
     @Override
-    public boolean apply(BlockVector2d position) throws WorldEditException {
+    public boolean apply(BlockVector2 position) throws WorldEditException {
         return mask.test(position) && function.apply(position);
     }
 

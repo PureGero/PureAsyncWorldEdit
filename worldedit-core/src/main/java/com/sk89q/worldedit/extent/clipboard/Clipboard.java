@@ -20,7 +20,7 @@
 package com.sk89q.worldedit.extent.clipboard;
 
 import com.sk89q.worldedit.extent.Extent;
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.regions.Region;
 
 /**
@@ -42,20 +42,20 @@ public interface Clipboard extends Extent {
      *
      * @return the dimensions
      */
-    BlockVector3d getDimensions();
+    BlockVector3 getDimensions();
 
     /**
      * Get the origin point from which the copy was made from.
      *
      * @return the origin
      */
-    BlockVector3d getOrigin();
+    BlockVector3 getOrigin();
 
     /**
      * Set the origin point from which the copy was made from.
      *
      * @param origin the origin
      */
-    void setOrigin(BlockVector3d origin);
+    void setOrigin(BlockVector3 origin);
 
 }

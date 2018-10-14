@@ -27,8 +27,8 @@ import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.internal.cui.CUIRegion;
 import com.sk89q.worldedit.internal.cui.SelectionPointEvent;
 import com.sk89q.worldedit.internal.cui.SelectionPolygonEvent;
-import com.sk89q.worldedit.math.BlockVector2d;
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector2;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.regions.ConvexPolyhedralRegion;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionSelector;
@@ -51,7 +51,7 @@ import javax.annotation.Nullable;
 public class ConvexPolyhedralRegionSelector implements RegionSelector, CUIRegion {
 
     private final transient ConvexPolyhedralRegion region;
-    private transient BlockVector3d pos1;
+    private transient BlockVector3 pos1;
 
     /**
      * Create a new selector with a {@code null} world.
@@ -96,9 +96,9 @@ public class ConvexPolyhedralRegionSelector implements RegionSelector, CUIRegion
 
             region = new ConvexPolyhedralRegion(oldRegion.getWorld());
 
-            for (final BlockVector2d pt : new ArrayList<>(oldRegion.polygonize(Integer.MAX_VALUE))) {
-                region.addVertex(pt.toBlockVector3d(minY));
-                region.addVertex(pt.toBlockVector3d(maxY));
+            for (final BlockVector2 pt : new ArrayList<>(oldRegion.polygonize(Integer.MAX_VALUE))) {
+                region.addVertex(pt.toBlockVector3(minY));
+                region.addVertex(pt.toBlockVector3(maxY));
             }
 
             learnChanges();
@@ -117,7 +117,7 @@ public class ConvexPolyhedralRegionSelector implements RegionSelector, CUIRegion
     }
 
     @Override
-    public boolean selectPrimary(BlockVector3d position, SelectorLimits limits) {
+    public boolean selectPrimary(BlockVector3 position, SelectorLimits limits) {
         checkNotNull(position);
         clear();
         pos1 = position;
@@ -125,7 +125,7 @@ public class ConvexPolyhedralRegionSelector implements RegionSelector, CUIRegion
     }
 
     @Override
-    public boolean selectSecondary(BlockVector3d position, SelectorLimits limits) {
+    public boolean selectSecondary(BlockVector3 position, SelectorLimits limits) {
         checkNotNull(position);
 
         Optional<Integer> vertexLimit = limits.getPolyhedronVertexLimit();
@@ -138,7 +138,7 @@ public class ConvexPolyhedralRegionSelector implements RegionSelector, CUIRegion
     }
 
     @Override
-    public BlockVector3d getPrimaryPosition() throws IncompleteRegionException {
+    public BlockVector3 getPrimaryPosition() throws IncompleteRegionException {
         return pos1;
     }
 
@@ -193,7 +193,7 @@ public class ConvexPolyhedralRegionSelector implements RegionSelector, CUIRegion
 
 
     @Override
-    public void explainPrimarySelection(Actor player, LocalSession session, BlockVector3d pos) {
+    public void explainPrimarySelection(Actor player, LocalSession session, BlockVector3 pos) {
         checkNotNull(player);
         checkNotNull(session);
         checkNotNull(pos);
@@ -204,7 +204,7 @@ public class ConvexPolyhedralRegionSelector implements RegionSelector, CUIRegion
     }
 
     @Override
-    public void explainSecondarySelection(Actor player, LocalSession session, BlockVector3d pos) {
+    public void explainSecondarySelection(Actor player, LocalSession session, BlockVector3 pos) {
         checkNotNull(player);
         checkNotNull(session);
         checkNotNull(pos);
@@ -236,12 +236,12 @@ public class ConvexPolyhedralRegionSelector implements RegionSelector, CUIRegion
         checkNotNull(player);
         checkNotNull(session);
 
-        Collection<BlockVector3d> vertices = region.getVertices();
+        Collection<BlockVector3> vertices = region.getVertices();
         Collection<Triangle> triangles = region.getTriangles();
 
-        Map<BlockVector3d, Integer> vertexIds = new HashMap<>(vertices.size());
+        Map<BlockVector3, Integer> vertexIds = new HashMap<>(vertices.size());
         int lastVertexId = -1;
-        for (BlockVector3d vertex : vertices) {
+        for (BlockVector3 vertex : vertices) {
             vertexIds.put(vertex, ++lastVertexId);
             session.dispatchCUIEvent(player, new SelectionPointEvent(lastVertexId, vertex, getArea()));
         }

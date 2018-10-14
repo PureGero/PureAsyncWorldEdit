@@ -39,8 +39,8 @@ import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.Mask2D;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.visitor.FlatRegionVisitor;
-import com.sk89q.worldedit.math.BlockVector2d;
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector2;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.FlatRegion;
 import com.sk89q.worldedit.regions.Region;
@@ -139,12 +139,12 @@ public class BiomeCommands {
                 return;
             }
 
-            BaseBiome biome = player.getWorld().getBiome(blockPosition.toVector().toBlockPoint().toBlockVector2d());
+            BaseBiome biome = player.getWorld().getBiome(blockPosition.toVector().toBlockPoint().toBlockVector2());
             biomes.add(biome);
 
             qualifier = "at line of sight point";
         } else if (args.hasFlag('p')) {
-            BaseBiome biome = player.getWorld().getBiome(player.getLocation().toVector().toBlockPoint().toBlockVector2d());
+            BaseBiome biome = player.getWorld().getBiome(player.getLocation().toVector().toBlockPoint().toBlockVector2());
             biomes.add(biome);
 
             qualifier = "at your position";
@@ -153,12 +153,12 @@ public class BiomeCommands {
             Region region = session.getSelection(world);
 
             if (region instanceof FlatRegion) {
-                for (BlockVector2d pt : ((FlatRegion) region).asFlatRegion()) {
+                for (BlockVector2 pt : ((FlatRegion) region).asFlatRegion()) {
                     biomes.add(world.getBiome(pt));
                 }
             } else {
-                for (BlockVector3d pt : region) {
-                    biomes.add(world.getBiome(pt.toBlockVector2d()));
+                for (BlockVector3 pt : region) {
+                    biomes.add(world.getBiome(pt.toBlockVector2()));
                 }
             }
 

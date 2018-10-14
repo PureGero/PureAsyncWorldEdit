@@ -41,8 +41,8 @@ import com.sk89q.worldedit.function.mask.SolidBlockMask;
 import com.sk89q.worldedit.internal.expression.Expression;
 import com.sk89q.worldedit.internal.expression.ExpressionException;
 import com.sk89q.worldedit.internal.registry.InputParser;
-import com.sk89q.worldedit.math.BlockVector3d;
-import com.sk89q.worldedit.math.Vector3d;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.math.Vector3;
 import com.sk89q.worldedit.math.noise.RandomNoise;
 import com.sk89q.worldedit.regions.shape.WorldEditExpressionEnvironment;
 import com.sk89q.worldedit.session.request.Request;
@@ -135,7 +135,7 @@ class DefaultMaskParser extends InputParser<Mask> {
                 } else {
                     submask = new ExistingBlockMask(extent);
                 }
-                OffsetMask offsetMask = new OffsetMask(submask, new BlockVector3d(0, firstChar == '>' ? -1 : 1, 0));
+                OffsetMask offsetMask = new OffsetMask(submask, new BlockVector3(0, firstChar == '>' ? -1 : 1, 0));
                 return new MaskIntersection(offsetMask, Masks.negate(submask));
 
             case '$':
@@ -162,7 +162,7 @@ class DefaultMaskParser extends InputParser<Mask> {
                 try {
                     Expression exp = Expression.compile(component.substring(1), "x", "y", "z");
                     WorldEditExpressionEnvironment env = new WorldEditExpressionEnvironment(
-                            Request.request().getEditSession(), Vector3d.ONE, Vector3d.ZERO);
+                            Request.request().getEditSession(), Vector3.ONE, Vector3.ZERO);
                     exp.setEnvironment(env);
                     return new ExpressionMask(exp);
                 } catch (ExpressionException e) {

@@ -38,7 +38,7 @@ import com.sk89q.worldedit.extension.platform.Capability;
 import com.sk89q.worldedit.extension.platform.Platform;
 import com.sk89q.worldedit.extension.platform.PlatformManager;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.scripting.CraftScriptContext;
 import com.sk89q.worldedit.scripting.CraftScriptEngine;
 import com.sk89q.worldedit.scripting.RhinoCraftScriptEngine;
@@ -368,7 +368,7 @@ public class WorldEdit {
      * @return a direction vector
      * @throws UnknownDirectionException thrown if the direction is not known
      */
-    public BlockVector3d getDirection(Player player, String dirStr) throws UnknownDirectionException {
+    public BlockVector3 getDirection(Player player, String dirStr) throws UnknownDirectionException {
         dirStr = dirStr.toLowerCase();
 
         final PlayerDirection dir = getPlayerDirection(player, dirStr);

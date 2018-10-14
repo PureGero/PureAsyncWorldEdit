@@ -19,7 +19,7 @@
 
 package com.sk89q.worldedit.regions;
 
-import com.sk89q.worldedit.math.BlockVector2d;
+import com.sk89q.worldedit.math.BlockVector2;
 
 public interface FlatRegion extends Region {
 
@@ -42,5 +42,5 @@ public interface FlatRegion extends Region {
      *
      * @return a flat region iterable
      */
-    Iterable<BlockVector2d> asFlatRegion();
+    Iterable<BlockVector2> asFlatRegion();
 }

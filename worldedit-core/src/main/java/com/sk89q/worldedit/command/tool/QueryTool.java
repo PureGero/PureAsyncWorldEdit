@@ -26,7 +26,7 @@ import com.sk89q.worldedit.blocks.MobSpawnerBlock;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extension.platform.Platform;
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.block.BlockStateHolder;
 
@@ -45,7 +45,7 @@ public class QueryTool implements BlockTool {
 
         World world = (World) clicked.getExtent();
         EditSession editSession = session.createEditSession(player);
-        BlockVector3d blockPoint = clicked.toVector().toBlockPoint();
+        BlockVector3 blockPoint = clicked.toVector().toBlockPoint();
         BlockStateHolder block = editSession.getFullBlock(blockPoint);
 
         player.print("\u00A79@" + clicked.toVector() + ": " + "\u00A7e"

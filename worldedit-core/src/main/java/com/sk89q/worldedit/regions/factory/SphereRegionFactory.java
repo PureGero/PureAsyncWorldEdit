@@ -19,16 +19,16 @@
 
 package com.sk89q.worldedit.regions.factory;
 
-import com.sk89q.worldedit.math.BlockVector3d;
-import com.sk89q.worldedit.math.Vector3d;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.math.Vector3;
 import com.sk89q.worldedit.regions.EllipsoidRegion;
 import com.sk89q.worldedit.regions.Region;
 
 public class SphereRegionFactory implements RegionFactory {
 
     @Override
-    public Region createCenteredAt(BlockVector3d position, double size) {
-        return new EllipsoidRegion(position, new Vector3d(size, size, size));
+    public Region createCenteredAt(BlockVector3 position, double size) {
+        return new EllipsoidRegion(position, new Vector3(size, size, size));
     }
 
 }

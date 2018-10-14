@@ -29,7 +29,7 @@ import com.sk89q.worldedit.extension.platform.Platform;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
 import com.sk89q.worldedit.function.pattern.BlockPattern;
 import com.sk89q.worldedit.function.pattern.Pattern;
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.world.block.BlockStateHolder;
 
 /**
@@ -55,7 +55,7 @@ public class BlockReplacer implements DoubleActionBlockTool {
         try (EditSession editSession = session.createEditSession(player)) {
             try {
                 editSession.disableBuffering();
-                BlockVector3d position = clicked.toVector().toBlockPoint();
+                BlockVector3 position = clicked.toVector().toBlockPoint();
                 editSession.setBlock(position, pattern.apply(position));
             } catch (MaxChangedBlocksException ignored) {
             } finally {

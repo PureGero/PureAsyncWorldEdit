@@ -19,9 +19,10 @@
 
 package com.sk89q.worldedit.sponge.adapter;
 
+import com.flowpowered.math.vector.Vector3d;
 import com.sk89q.worldedit.blocks.BaseItemStack;
 import com.sk89q.worldedit.entity.BaseEntity;
-import com.sk89q.worldedit.math.Vector3d;
+import com.sk89q.worldedit.math.Vector3;
 import com.sk89q.worldedit.sponge.SpongeWorld;
 import com.sk89q.worldedit.util.Location;
 
@@ -55,8 +56,8 @@ public interface SpongeImplAdapter {
         return true;
     }
 
-    default Location adapt(org.spongepowered.api.world.Location<org.spongepowered.api.world.World> loc, com.flowpowered.math.vector.Vector3d rot) {
-        Vector3d position = new Vector3d(loc.getX(), loc.getY(), loc.getZ());
+    default Location adapt(org.spongepowered.api.world.Location<org.spongepowered.api.world.World> loc, Vector3d rot) {
+        Vector3 position = new Vector3(loc.getX(), loc.getY(), loc.getZ());
 
         return new Location(getWorld(loc.getExtent()), position, (float) rot.getY(), (float) rot.getX());
     }

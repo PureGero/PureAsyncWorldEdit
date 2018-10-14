@@ -26,7 +26,7 @@ import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.function.LayerFunction;
 import com.sk89q.worldedit.function.mask.BlockTypeMask;
 import com.sk89q.worldedit.function.mask.Mask;
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.world.block.BlockTypes;
 
 /**
@@ -61,12 +61,12 @@ public class Naturalizer implements LayerFunction {
     }
 
     @Override
-    public boolean isGround(BlockVector3d position) {
+    public boolean isGround(BlockVector3 position) {
         return mask.test(position);
     }
 
     @Override
-    public boolean apply(BlockVector3d position, int depth) throws WorldEditException {
+    public boolean apply(BlockVector3 position, int depth) throws WorldEditException {
         if (mask.test(position)) {
             affected++;
             switch (depth) {

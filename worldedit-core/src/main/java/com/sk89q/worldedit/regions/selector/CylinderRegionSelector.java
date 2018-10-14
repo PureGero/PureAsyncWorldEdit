@@ -28,10 +28,10 @@ import com.sk89q.worldedit.internal.cui.CUIRegion;
 import com.sk89q.worldedit.internal.cui.SelectionCylinderEvent;
 import com.sk89q.worldedit.internal.cui.SelectionMinMaxEvent;
 import com.sk89q.worldedit.internal.cui.SelectionPointEvent;
-import com.sk89q.worldedit.math.BlockVector2d;
-import com.sk89q.worldedit.math.BlockVector3d;
-import com.sk89q.worldedit.math.Vector2d;
-import com.sk89q.worldedit.math.Vector3d;
+import com.sk89q.worldedit.math.BlockVector2;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.math.Vector2;
+import com.sk89q.worldedit.math.Vector3;
 import com.sk89q.worldedit.regions.CylinderRegion;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionSelector;
@@ -93,12 +93,12 @@ public class CylinderRegionSelector implements RegionSelector, CUIRegion {
                 return;
             }
 
-            BlockVector3d pos1 = oldRegion.getMinimumPoint();
-            BlockVector3d pos2 = oldRegion.getMaximumPoint();
+            BlockVector3 pos1 = oldRegion.getMinimumPoint();
+            BlockVector3 pos2 = oldRegion.getMaximumPoint();
 
-            BlockVector3d center = pos1.add(pos2).divide(2).floor();
-            region.setCenter(center.toBlockVector2d());
-            region.setRadius(pos2.toBlockVector2d().subtract(center.toBlockVector2d()).toVector2d());
+            BlockVector3 center = pos1.add(pos2).divide(2).floor();
+            region.setCenter(center.toBlockVector2());
+            region.setRadius(pos2.toBlockVector2().subtract(center.toBlockVector2()).toVector2());
 
             region.setMaximumY(Math.max(pos1.getBlockY(), pos2.getBlockY()));
             region.setMinimumY(Math.min(pos1.getBlockY(), pos2.getBlockY()));
@@ -114,7 +114,7 @@ public class CylinderRegionSelector implements RegionSelector, CUIRegion {
      * @param minY the minimum Y
      * @param maxY the maximum Y
      */
-    public CylinderRegionSelector(@Nullable World world, BlockVector2d center, Vector2d radius, int minY, int maxY) {
+    public CylinderRegionSelector(@Nullable World world, BlockVector2 center, Vector2 radius, int minY, int maxY) {
         this(world);
 
         region.setCenter(center);
@@ -136,27 +136,27 @@ public class CylinderRegionSelector implements RegionSelector, CUIRegion {
     }
 
     @Override
-    public boolean selectPrimary(BlockVector3d position, SelectorLimits limits) {
-        if (!region.getCenter().equals(Vector3d.ZERO) && position.equals(region.getCenter().toBlockPoint())) {
+    public boolean selectPrimary(BlockVector3 position, SelectorLimits limits) {
+        if (!region.getCenter().equals(Vector3.ZERO) && position.equals(region.getCenter().toBlockPoint())) {
             return false;
         }
 
         region = new CylinderRegion(region.getWorld());
-        region.setCenter(position.toBlockVector2d());
+        region.setCenter(position.toBlockVector2());
         region.setY(position.getBlockY());
 
         return true;
     }
 
     @Override
-    public boolean selectSecondary(BlockVector3d position, SelectorLimits limits) {
-        Vector3d center = region.getCenter();
-        if (center.equals(Vector3d.ZERO)) {
+    public boolean selectSecondary(BlockVector3 position, SelectorLimits limits) {
+        Vector3 center = region.getCenter();
+        if (center.equals(Vector3.ZERO)) {
             return true;
         }
 
-        final Vector2d diff = position.toVector3d().subtract(center).toVector2d();
-        final Vector2d minRadius = diff.getMaximum(diff.multiply(-1.0));
+        final Vector2 diff = position.toVector3().subtract(center).toVector2();
+        final Vector2 minRadius = diff.getMaximum(diff.multiply(-1.0));
         region.extendRadius(minRadius);
 
         region.setY(position.getBlockY());
@@ -165,17 +165,17 @@ public class CylinderRegionSelector implements RegionSelector, CUIRegion {
     }
 
     @Override
-    public void explainPrimarySelection(Actor player, LocalSession session, BlockVector3d pos) {
+    public void explainPrimarySelection(Actor player, LocalSession session, BlockVector3 pos) {
         player.print("Starting a new cylindrical selection at " + pos + ".");
 
         session.describeCUI(player);
     }
 
     @Override
-    public void explainSecondarySelection(Actor player, LocalSession session, BlockVector3d pos) {
-        Vector3d center = region.getCenter();
+    public void explainSecondarySelection(Actor player, LocalSession session, BlockVector3 pos) {
+        Vector3 center = region.getCenter();
 
-        if (!center.equals(Vector3d.ZERO)) {
+        if (!center.equals(Vector3.ZERO)) {
             player.print("Radius set to " + NUMBER_FORMAT.format(region.getRadius().getX()) + "/" + NUMBER_FORMAT.format(region.getRadius().getZ()) + " blocks. (" + region.getArea() + ").");
         } else {
             player.printError("You must select the center point before setting the radius.");
@@ -191,7 +191,7 @@ public class CylinderRegionSelector implements RegionSelector, CUIRegion {
     }
 
     @Override
-    public BlockVector3d getPrimaryPosition() throws IncompleteRegionException {
+    public BlockVector3 getPrimaryPosition() throws IncompleteRegionException {
         if (!isDefined()) {
             throw new IncompleteRegionException();
         }
@@ -215,7 +215,7 @@ public class CylinderRegionSelector implements RegionSelector, CUIRegion {
 
     @Override
     public boolean isDefined() {
-        return !region.getRadius().equals(Vector2d.ZERO);
+        return !region.getRadius().equals(Vector2.ZERO);
     }
 
     @Override
@@ -236,10 +236,10 @@ public class CylinderRegionSelector implements RegionSelector, CUIRegion {
     public List<String> getInformationLines() {
         final List<String> lines = new ArrayList<>();
 
-        if (!region.getCenter().equals(Vector3d.ZERO)) {
+        if (!region.getCenter().equals(Vector3.ZERO)) {
             lines.add("Center: " + region.getCenter());
         }
-        if (!region.getRadius().equals(Vector2d.ZERO)) {
+        if (!region.getRadius().equals(Vector2.ZERO)) {
             lines.add("Radius: " + region.getRadius());
         }
 

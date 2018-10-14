@@ -27,12 +27,12 @@ import java.util.Comparator;
 /**
  * An immutable 2-dimensional vector.
  */
-public final class BlockVector2d {
+public final class BlockVector2 {
     
-    public static final BlockVector2d ZERO = new BlockVector2d(0, 0);
-    public static final BlockVector2d UNIT_X = new BlockVector2d(1, 0);
-    public static final BlockVector2d UNIT_Z = new BlockVector2d(0, 1);
-    public static final BlockVector2d ONE = new BlockVector2d(1, 1);
+    public static final BlockVector2 ZERO = new BlockVector2(0, 0);
+    public static final BlockVector2 UNIT_X = new BlockVector2(1, 0);
+    public static final BlockVector2 UNIT_Z = new BlockVector2(0, 1);
+    public static final BlockVector2 ONE = new BlockVector2(1, 1);
 
     /**
      * A comparator for BlockVector2ds that orders the vectors by rows, with x as the
@@ -48,7 +48,7 @@ public final class BlockVector2d {
      * cdef
      * </pre>
      */
-    public static final Comparator<BlockVector2d> COMPARING_GRID_ARRANGEMENT = (a, b) -> {
+    public static final Comparator<BlockVector2> COMPARING_GRID_ARRANGEMENT = (a, b) -> {
         return ComparisonChain.start()
                 .compare(a.getBlockZ(), b.getBlockZ())
                 .compare(a.getBlockX(), b.getBlockX())
@@ -63,7 +63,7 @@ public final class BlockVector2d {
      * @param x the X coordinate
      * @param z the Z coordinate
      */
-    public BlockVector2d(double x, double z) {
+    public BlockVector2(double x, double z) {
         this((int) Math.floor(x), (int) Math.floor(z));
     }
 
@@ -73,7 +73,7 @@ public final class BlockVector2d {
      * @param x the X coordinate
      * @param z the Z coordinate
      */
-    public BlockVector2d(int x, int z) {
+    public BlockVector2(int x, int z) {
         this.x = x;
         this.z = z;
     }
@@ -102,8 +102,8 @@ public final class BlockVector2d {
      * @param x the new X
      * @return a new vector
      */
-    public BlockVector2d withX(int x) {
-        return new BlockVector2d(x, z);
+    public BlockVector2 withX(int x) {
+        return new BlockVector2(x, z);
     }
 
     /**
@@ -130,8 +130,8 @@ public final class BlockVector2d {
      * @param z the new Z
      * @return a new vector
      */
-    public BlockVector2d withZ(int z) {
-        return new BlockVector2d(x, z);
+    public BlockVector2 withZ(int z) {
+        return new BlockVector2(x, z);
     }
 
     /**
@@ -140,7 +140,7 @@ public final class BlockVector2d {
      * @param other the other vector
      * @return a new vector
      */
-    public BlockVector2d add(BlockVector2d other) {
+    public BlockVector2 add(BlockVector2 other) {
         return add(other.x, other.z);
     }
 
@@ -151,8 +151,8 @@ public final class BlockVector2d {
      * @param z the value to add
      * @return a new vector
      */
-    public BlockVector2d add(int x, int z) {
-        return new BlockVector2d(this.x + x, this.z + z);
+    public BlockVector2 add(int x, int z) {
+        return new BlockVector2(this.x + x, this.z + z);
     }
 
     /**
@@ -162,15 +162,15 @@ public final class BlockVector2d {
      * @param others an array of vectors
      * @return a new vector
      */
-    public BlockVector2d add(BlockVector2d... others) {
+    public BlockVector2 add(BlockVector2... others) {
         int newX = x, newZ = z;
 
-        for (BlockVector2d other : others) {
+        for (BlockVector2 other : others) {
             newX += other.x;
             newZ += other.z;
         }
 
-        return new BlockVector2d(newX, newZ);
+        return new BlockVector2(newX, newZ);
     }
 
     /**
@@ -180,7 +180,7 @@ public final class BlockVector2d {
      * @param other the other vector
      * @return a new vector
      */
-    public BlockVector2d subtract(BlockVector2d other) {
+    public BlockVector2 subtract(BlockVector2 other) {
         return subtract(other.x, other.z);
     }
 
@@ -192,8 +192,8 @@ public final class BlockVector2d {
      * @param z the value to subtract
      * @return a new vector
      */
-    public BlockVector2d subtract(int x, int z) {
-        return new BlockVector2d(this.x - x, this.z - z);
+    public BlockVector2 subtract(int x, int z) {
+        return new BlockVector2(this.x - x, this.z - z);
     }
 
     /**
@@ -203,15 +203,15 @@ public final class BlockVector2d {
      * @param others an array of vectors
      * @return a new vector
      */
-    public BlockVector2d subtract(BlockVector2d... others) {
+    public BlockVector2 subtract(BlockVector2... others) {
         int newX = x, newZ = z;
 
-        for (BlockVector2d other : others) {
+        for (BlockVector2 other : others) {
             newX -= other.x;
             newZ -= other.z;
         }
 
-        return new BlockVector2d(newX, newZ);
+        return new BlockVector2(newX, newZ);
     }
 
     /**
@@ -220,7 +220,7 @@ public final class BlockVector2d {
      * @param other the other vector
      * @return a new vector
      */
-    public BlockVector2d multiply(BlockVector2d other) {
+    public BlockVector2 multiply(BlockVector2 other) {
         return multiply(other.x, other.z);
     }
 
@@ -231,8 +231,8 @@ public final class BlockVector2d {
      * @param z the value to multiply
      * @return a new vector
      */
-    public BlockVector2d multiply(int x, int z) {
-        return new BlockVector2d(this.x * x, this.z * z);
+    public BlockVector2 multiply(int x, int z) {
+        return new BlockVector2(this.x * x, this.z * z);
     }
 
     /**
@@ -241,15 +241,15 @@ public final class BlockVector2d {
      * @param others an array of vectors
      * @return a new vector
      */
-    public BlockVector2d multiply(BlockVector2d... others) {
+    public BlockVector2 multiply(BlockVector2... others) {
         int newX = x, newZ = z;
 
-        for (BlockVector2d other : others) {
+        for (BlockVector2 other : others) {
             newX *= other.x;
             newZ *= other.z;
         }
 
-        return new BlockVector2d(newX, newZ);
+        return new BlockVector2(newX, newZ);
     }
 
     /**
@@ -258,7 +258,7 @@ public final class BlockVector2d {
      * @param n the value to multiply
      * @return a new vector
      */
-    public BlockVector2d multiply(int n) {
+    public BlockVector2 multiply(int n) {
         return multiply(n, n);
     }
 
@@ -268,7 +268,7 @@ public final class BlockVector2d {
      * @param other the other vector
      * @return a new vector
      */
-    public BlockVector2d divide(BlockVector2d other) {
+    public BlockVector2 divide(BlockVector2 other) {
         return divide(other.x, other.z);
     }
 
@@ -279,8 +279,8 @@ public final class BlockVector2d {
      * @param z the value to divide by
      * @return a new vector
      */
-    public BlockVector2d divide(int x, int z) {
-        return new BlockVector2d(this.x / x, this.z / z);
+    public BlockVector2 divide(int x, int z) {
+        return new BlockVector2(this.x / x, this.z / z);
     }
 
     /**
@@ -289,7 +289,7 @@ public final class BlockVector2d {
      * @param n the value to divide by
      * @return a new vector
      */
-    public BlockVector2d divide(int n) {
+    public BlockVector2 divide(int n) {
         return divide(n, n);
     }
 
@@ -317,7 +317,7 @@ public final class BlockVector2d {
      * @param other the other vector
      * @return distance
      */
-    public double distance(BlockVector2d other) {
+    public double distance(BlockVector2 other) {
         return Math.sqrt(distanceSq(other));
     }
 
@@ -327,7 +327,7 @@ public final class BlockVector2d {
      * @param other the other vector
      * @return distance
      */
-    public int distanceSq(BlockVector2d other) {
+    public int distanceSq(BlockVector2 other) {
         int dx = other.x - x;
         int dz = other.z - z;
         return dx * dx + dz * dz;
@@ -339,11 +339,11 @@ public final class BlockVector2d {
      *
      * @return a new vector
      */
-    public BlockVector2d normalize() {
+    public BlockVector2 normalize() {
         double len = length();
         double x = this.x / len;
         double z = this.z / len;
-        return new BlockVector2d(x, z);
+        return new BlockVector2(x, z);
     }
 
     /**
@@ -352,7 +352,7 @@ public final class BlockVector2d {
      * @param other the other vector
      * @return the dot product of this and the other vector
      */
-    public int dot(BlockVector2d other) {
+    public int dot(BlockVector2 other) {
         return x * other.x + z * other.z;
     }
 
@@ -363,7 +363,7 @@ public final class BlockVector2d {
      * @param max the maximum point (X, Y, and Z are the lowest)
      * @return true if the vector is contained
      */
-    public boolean containedWithin(BlockVector2d min, BlockVector2d max) {
+    public boolean containedWithin(BlockVector2 min, BlockVector2 max) {
         return x >= min.x && x <= max.x
                 && z >= min.z && z <= max.z;
     }
@@ -373,8 +373,8 @@ public final class BlockVector2d {
      *
      * @return a new vector
      */
-    public BlockVector2d floor() {
-        // already floored, kept for feature parity with Vector2d
+    public BlockVector2 floor() {
+        // already floored, kept for feature parity with Vector2
         return this;
     }
 
@@ -383,8 +383,8 @@ public final class BlockVector2d {
      *
      * @return a new vector
      */
-    public BlockVector2d ceil() {
-        // already raised, kept for feature parity with Vector2d
+    public BlockVector2 ceil() {
+        // already raised, kept for feature parity with Vector2
         return this;
     }
 
@@ -395,8 +395,8 @@ public final class BlockVector2d {
      *
      * @return a new vector
      */
-    public BlockVector2d round() {
-        // already rounded, kept for feature parity with Vector2d
+    public BlockVector2 round() {
+        // already rounded, kept for feature parity with Vector2
         return this;
     }
 
@@ -406,8 +406,8 @@ public final class BlockVector2d {
      *
      * @return a new vector
      */
-    public BlockVector2d abs() {
-        return new BlockVector2d(Math.abs(x), Math.abs(z));
+    public BlockVector2 abs() {
+        return new BlockVector2(Math.abs(x), Math.abs(z));
     }
 
     /**
@@ -421,7 +421,7 @@ public final class BlockVector2d {
      * @return a new vector
      * @see AffineTransform another method to transform vectors
      */
-    public BlockVector2d transform2D(double angle, double aboutX, double aboutZ, double translateX, double translateZ) {
+    public BlockVector2 transform2D(double angle, double aboutX, double aboutZ, double translateX, double translateZ) {
         angle = Math.toRadians(angle);
         double x = this.x - aboutX;
         double z = this.z - aboutZ;
@@ -429,7 +429,7 @@ public final class BlockVector2d {
         double sin = Math.sin(angle);
         double x2 = x * cos - z * sin;
         double z2 = x * sin + z * cos;
-        return new BlockVector2d(
+        return new BlockVector2(
                 x2 + aboutX + translateX,
                 z2 + aboutZ + translateZ);
     }
@@ -440,8 +440,8 @@ public final class BlockVector2d {
      * @param v2 the second vector
      * @return minimum
      */
-    public BlockVector2d getMinimum(BlockVector2d v2) {
-        return new BlockVector2d(
+    public BlockVector2 getMinimum(BlockVector2 v2) {
+        return new BlockVector2(
             Math.min(x, v2.x),
             Math.min(z, v2.z)
         );
@@ -453,15 +453,15 @@ public final class BlockVector2d {
      * @param v2 the second vector
      * @return maximum
      */
-    public BlockVector2d getMaximum(BlockVector2d v2) {
-        return new BlockVector2d(
+    public BlockVector2 getMaximum(BlockVector2 v2) {
+        return new BlockVector2(
             Math.max(x, v2.x),
             Math.max(z, v2.z)
         );
     }
 
-    public Vector2d toVector2d() {
-        return new Vector2d(x, z);
+    public Vector2 toVector2() {
+        return new Vector2(x, z);
     }
 
     /**
@@ -469,8 +469,8 @@ public final class BlockVector2d {
      *
      * @return a new vector
      */
-    public Vector3d toVector3d() {
-        return toVector3d(0);
+    public Vector3 toVector3() {
+        return toVector3(0);
     }
 
     /**
@@ -479,8 +479,8 @@ public final class BlockVector2d {
      * @param y the Y component
      * @return a new vector
      */
-    public Vector3d toVector3d(double y) {
-        return new Vector3d(x, y, z);
+    public Vector3 toVector3(double y) {
+        return new Vector3(x, y, z);
     }
 
     /**
@@ -488,8 +488,8 @@ public final class BlockVector2d {
      *
      * @return a new vector
      */
-    public BlockVector3d toBlockVector3d() {
-        return toBlockVector3d(0);
+    public BlockVector3 toBlockVector3() {
+        return toBlockVector3(0);
     }
 
     /**
@@ -498,17 +498,17 @@ public final class BlockVector2d {
      * @param y the Y component
      * @return a new vector
      */
-    public BlockVector3d toBlockVector3d(int y) {
-        return new BlockVector3d(x, y, z);
+    public BlockVector3 toBlockVector3(int y) {
+        return new BlockVector3(x, y, z);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof BlockVector2d)) {
+        if (!(obj instanceof BlockVector2)) {
             return false;
         }
 
-        BlockVector2d other = (BlockVector2d) obj;
+        BlockVector2 other = (BlockVector2) obj;
         return other.x == this.x && other.z == this.z;
 
     }

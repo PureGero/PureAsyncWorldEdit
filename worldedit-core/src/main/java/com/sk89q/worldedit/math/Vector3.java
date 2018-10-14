@@ -29,17 +29,17 @@ import java.util.Comparator;
 /**
  * An immutable 3-dimensional vector.
  */
-public final class Vector3d {
+public final class Vector3 {
 
-    public static final Vector3d ZERO = new Vector3d(0, 0, 0);
-    public static final Vector3d UNIT_X = new Vector3d(1, 0, 0);
-    public static final Vector3d UNIT_Y = new Vector3d(0, 1, 0);
-    public static final Vector3d UNIT_Z = new Vector3d(0, 0, 1);
-    public static final Vector3d ONE = new Vector3d(1, 1, 1);
+    public static final Vector3 ZERO = new Vector3(0, 0, 0);
+    public static final Vector3 UNIT_X = new Vector3(1, 0, 0);
+    public static final Vector3 UNIT_Y = new Vector3(0, 1, 0);
+    public static final Vector3 UNIT_Z = new Vector3(0, 0, 1);
+    public static final Vector3 ONE = new Vector3(1, 1, 1);
 
     // thread-safe initialization idiom
     private static final class YzxOrderComparator {
-        private static final Comparator<Vector3d> YZX_ORDER = (a, b) -> {
+        private static final Comparator<Vector3> YZX_ORDER = (a, b) -> {
             return ComparisonChain.start()
                     .compare(a.y, b.y)
                     .compare(a.z, b.z)
@@ -54,7 +54,7 @@ public final class Vector3d {
      * <p>
      * Useful for sorting by chunk block storage order.
      */
-    public static Comparator<Vector3d> sortByCoordsYzx() {
+    public static Comparator<Vector3> sortByCoordsYzx() {
         return YzxOrderComparator.YZX_ORDER;
     }
 
@@ -67,7 +67,7 @@ public final class Vector3d {
      * @param y the Y coordinate
      * @param z the Z coordinate
      */
-    public Vector3d(double x, double y, double z) {
+    public Vector3(double x, double y, double z) {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -78,7 +78,7 @@ public final class Vector3d {
      *
      * @param other another vector to make a copy of
      */
-    public Vector3d(Vector3d other) {
+    public Vector3(Vector3 other) {
         this.x = other.x;
         this.y = other.y;
         this.z = other.z;
@@ -99,8 +99,8 @@ public final class Vector3d {
      * @param x the new X
      * @return a new vector
      */
-    public Vector3d withX(double x) {
-        return new Vector3d(x, y, z);
+    public Vector3 withX(double x) {
+        return new Vector3(x, y, z);
     }
 
     /**
@@ -118,8 +118,8 @@ public final class Vector3d {
      * @param y the new Y
      * @return a new vector
      */
-    public Vector3d withY(double y) {
-        return new Vector3d(x, y, z);
+    public Vector3 withY(double y) {
+        return new Vector3(x, y, z);
     }
 
     /**
@@ -137,8 +137,8 @@ public final class Vector3d {
      * @param z the new Z
      * @return a new vector
      */
-    public Vector3d withZ(double z) {
-        return new Vector3d(x, y, z);
+    public Vector3 withZ(double z) {
+        return new Vector3(x, y, z);
     }
 
     /**
@@ -147,7 +147,7 @@ public final class Vector3d {
      * @param other the other vector
      * @return a new vector
      */
-    public Vector3d add(Vector3d other) {
+    public Vector3 add(Vector3 other) {
         return add(other.x, other.y, other.z);
     }
 
@@ -159,8 +159,8 @@ public final class Vector3d {
      * @param z the value to add
      * @return a new vector
      */
-    public Vector3d add(double x, double y, double z) {
-        return new Vector3d(this.x + x, this.y + y, this.z + z);
+    public Vector3 add(double x, double y, double z) {
+        return new Vector3(this.x + x, this.y + y, this.z + z);
     }
 
     /**
@@ -170,16 +170,16 @@ public final class Vector3d {
      * @param others an array of vectors
      * @return a new vector
      */
-    public Vector3d add(Vector3d... others) {
+    public Vector3 add(Vector3... others) {
         double newX = x, newY = y, newZ = z;
 
-        for (Vector3d other : others) {
+        for (Vector3 other : others) {
             newX += other.x;
             newY += other.y;
             newZ += other.z;
         }
 
-        return new Vector3d(newX, newY, newZ);
+        return new Vector3(newX, newY, newZ);
     }
 
     /**
@@ -189,7 +189,7 @@ public final class Vector3d {
      * @param other the other vector
      * @return a new vector
      */
-    public Vector3d subtract(Vector3d other) {
+    public Vector3 subtract(Vector3 other) {
         return subtract(other.x, other.y, other.z);
     }
 
@@ -202,8 +202,8 @@ public final class Vector3d {
      * @param z the value to subtract
      * @return a new vector
      */
-    public Vector3d subtract(double x, double y, double z) {
-        return new Vector3d(this.x - x, this.y - y, this.z - z);
+    public Vector3 subtract(double x, double y, double z) {
+        return new Vector3(this.x - x, this.y - y, this.z - z);
     }
 
     /**
@@ -213,16 +213,16 @@ public final class Vector3d {
      * @param others an array of vectors
      * @return a new vector
      */
-    public Vector3d subtract(Vector3d... others) {
+    public Vector3 subtract(Vector3... others) {
         double newX = x, newY = y, newZ = z;
 
-        for (Vector3d other : others) {
+        for (Vector3 other : others) {
             newX -= other.x;
             newY -= other.y;
             newZ -= other.z;
         }
 
-        return new Vector3d(newX, newY, newZ);
+        return new Vector3(newX, newY, newZ);
     }
 
     /**
@@ -231,7 +231,7 @@ public final class Vector3d {
      * @param other the other vector
      * @return a new vector
      */
-    public Vector3d multiply(Vector3d other) {
+    public Vector3 multiply(Vector3 other) {
         return multiply(other.x, other.y, other.z);
     }
 
@@ -243,8 +243,8 @@ public final class Vector3d {
      * @param z the value to multiply
      * @return a new vector
      */
-    public Vector3d multiply(double x, double y, double z) {
-        return new Vector3d(this.x * x, this.y * y, this.z * z);
+    public Vector3 multiply(double x, double y, double z) {
+        return new Vector3(this.x * x, this.y * y, this.z * z);
     }
 
     /**
@@ -253,16 +253,16 @@ public final class Vector3d {
      * @param others an array of vectors
      * @return a new vector
      */
-    public Vector3d multiply(Vector3d... others) {
+    public Vector3 multiply(Vector3... others) {
         double newX = x, newY = y, newZ = z;
 
-        for (Vector3d other : others) {
+        for (Vector3 other : others) {
             newX *= other.x;
             newY *= other.y;
             newZ *= other.z;
         }
 
-        return new Vector3d(newX, newY, newZ);
+        return new Vector3(newX, newY, newZ);
     }
 
     /**
@@ -271,7 +271,7 @@ public final class Vector3d {
      * @param n the value to multiply
      * @return a new vector
      */
-    public Vector3d multiply(double n) {
+    public Vector3 multiply(double n) {
         return multiply(n, n, n);
     }
 
@@ -281,7 +281,7 @@ public final class Vector3d {
      * @param other the other vector
      * @return a new vector
      */
-    public Vector3d divide(Vector3d other) {
+    public Vector3 divide(Vector3 other) {
         return divide(other.x, other.y, other.z);
     }
 
@@ -293,8 +293,8 @@ public final class Vector3d {
      * @param z the value to divide by
      * @return a new vector
      */
-    public Vector3d divide(double x, double y, double z) {
-        return new Vector3d(this.x / x, this.y / y, this.z / z);
+    public Vector3 divide(double x, double y, double z) {
+        return new Vector3(this.x / x, this.y / y, this.z / z);
     }
 
     /**
@@ -303,7 +303,7 @@ public final class Vector3d {
      * @param n the value to divide by
      * @return a new vector
      */
-    public Vector3d divide(double n) {
+    public Vector3 divide(double n) {
         return divide(n, n, n);
     }
 
@@ -331,7 +331,7 @@ public final class Vector3d {
      * @param other the other vector
      * @return distance
      */
-    public double distance(Vector3d other) {
+    public double distance(Vector3 other) {
         return Math.sqrt(distanceSq(other));
     }
 
@@ -341,7 +341,7 @@ public final class Vector3d {
      * @param other the other vector
      * @return distance
      */
-    public double distanceSq(Vector3d other) {
+    public double distanceSq(Vector3 other) {
         double dx = other.x - x;
         double dy = other.y - y;
         double dz = other.z - z;
@@ -354,7 +354,7 @@ public final class Vector3d {
      *
      * @return a new vector
      */
-    public Vector3d normalize() {
+    public Vector3 normalize() {
         return divide(length());
     }
 
@@ -364,7 +364,7 @@ public final class Vector3d {
      * @param other the other vector
      * @return the dot product of this and the other vector
      */
-    public double dot(Vector3d other) {
+    public double dot(Vector3 other) {
         return x * other.x + y * other.y + z * other.z;
     }
 
@@ -374,8 +374,8 @@ public final class Vector3d {
      * @param other the other vector
      * @return the cross product of this and the other vector
      */
-    public Vector3d cross(Vector3d other) {
-        return new Vector3d(
+    public Vector3 cross(Vector3 other) {
+        return new Vector3(
             y * other.z - z * other.y,
             z * other.x - x * other.z,
             x * other.y - y * other.x
@@ -389,7 +389,7 @@ public final class Vector3d {
      * @param max the maximum point (X, Y, and Z are the lowest)
      * @return true if the vector is contained
      */
-    public boolean containedWithin(Vector3d min, Vector3d max) {
+    public boolean containedWithin(Vector3 min, Vector3 max) {
         return x >= min.x && x <= max.x && y >= min.y && y <= max.y && z >= min.z && z <= max.z;
     }
 
@@ -400,13 +400,13 @@ public final class Vector3d {
      * @param max the maximum value
      * @return a new vector
      */
-    public Vector3d clampY(int min, int max) {
+    public Vector3 clampY(int min, int max) {
         checkArgument(min <= max, "minimum cannot be greater than maximum");
         if (y < min) {
-            return new Vector3d(x, min, z);
+            return new Vector3(x, min, z);
         }
         if (y > max) {
-            return new Vector3d(x, max, z);
+            return new Vector3(x, max, z);
         }
         return this;
     }
@@ -416,8 +416,8 @@ public final class Vector3d {
      *
      * @return a new vector
      */
-    public Vector3d floor() {
-        return new Vector3d(Math.floor(x), Math.floor(y), Math.floor(z));
+    public Vector3 floor() {
+        return new Vector3(Math.floor(x), Math.floor(y), Math.floor(z));
     }
 
     /**
@@ -425,8 +425,8 @@ public final class Vector3d {
      *
      * @return a new vector
      */
-    public Vector3d ceil() {
-        return new Vector3d(Math.ceil(x), Math.ceil(y), Math.ceil(z));
+    public Vector3 ceil() {
+        return new Vector3(Math.ceil(x), Math.ceil(y), Math.ceil(z));
     }
 
     /**
@@ -436,8 +436,8 @@ public final class Vector3d {
      *
      * @return a new vector
      */
-    public Vector3d round() {
-        return new Vector3d(Math.floor(x + 0.5), Math.floor(y + 0.5), Math.floor(z + 0.5));
+    public Vector3 round() {
+        return new Vector3(Math.floor(x + 0.5), Math.floor(y + 0.5), Math.floor(z + 0.5));
     }
 
     /**
@@ -446,8 +446,8 @@ public final class Vector3d {
      *
      * @return a new vector
      */
-    public Vector3d abs() {
-        return new Vector3d(Math.abs(x), Math.abs(y), Math.abs(z));
+    public Vector3 abs() {
+        return new Vector3(Math.abs(x), Math.abs(y), Math.abs(z));
     }
 
     /**
@@ -461,7 +461,7 @@ public final class Vector3d {
      * @return a new vector
      * @see AffineTransform another method to transform vectors
      */
-    public Vector3d transform2D(double angle, double aboutX, double aboutZ, double translateX, double translateZ) {
+    public Vector3 transform2D(double angle, double aboutX, double aboutZ, double translateX, double translateZ) {
         angle = Math.toRadians(angle);
         double x = this.x - aboutX;
         double z = this.z - aboutZ;
@@ -470,7 +470,7 @@ public final class Vector3d {
         double x2 = x * cos - z * sin;
         double z2 = x * sin + z * cos;
 
-        return new Vector3d(
+        return new Vector3(
             x2 + aboutX + translateX,
             y,
             z2 + aboutZ + translateZ
@@ -517,8 +517,8 @@ public final class Vector3d {
      * @param v2 the second vector
      * @return minimum
      */
-    public Vector3d getMinimum(Vector3d v2) {
-        return new Vector3d(
+    public Vector3 getMinimum(Vector3 v2) {
+        return new Vector3(
                 Math.min(x, v2.x),
                 Math.min(y, v2.y),
                 Math.min(z, v2.z)
@@ -531,8 +531,8 @@ public final class Vector3d {
      * @param v2 the second vector
      * @return maximum
      */
-    public Vector3d getMaximum(Vector3d v2) {
-        return new Vector3d(
+    public Vector3 getMaximum(Vector3 v2) {
+        return new Vector3(
                 Math.max(x, v2.x),
                 Math.max(y, v2.y),
                 Math.max(z, v2.z)
@@ -547,8 +547,8 @@ public final class Vector3d {
      * @param z the Z coordinate
      * @return a new {@code BlockVector}
      */
-    public static BlockVector3d toBlockPoint(double x, double y, double z) {
-        return new BlockVector3d(x, y, z);
+    public static BlockVector3 toBlockPoint(double x, double y, double z) {
+        return new BlockVector3(x, y, z);
     }
 
     /**
@@ -556,26 +556,26 @@ public final class Vector3d {
      *
      * @return a new {@code BlockVector}
      */
-    public BlockVector3d toBlockPoint() {
+    public BlockVector3 toBlockPoint() {
         return toBlockPoint(x, y, z);
     }
 
     /**
      * Creates a 2D vector by dropping the Y component from this vector.
      *
-     * @return a new {@code Vector2d}
+     * @return a new {@link Vector2}
      */
-    public Vector2d toVector2d() {
-        return new Vector2d(x, z);
+    public Vector2 toVector2() {
+        return new Vector2(x, z);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof Vector3d)) {
+        if (!(obj instanceof Vector3)) {
             return false;
         }
 
-        Vector3d other = (Vector3d) obj;
+        Vector3 other = (Vector3) obj;
         return other.x == this.x && other.y == this.y && other.z == this.z;
     }
 

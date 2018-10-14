@@ -20,7 +20,7 @@
 package com.sk89q.worldedit.function;
 
 import com.sk89q.worldedit.WorldEditException;
-import com.sk89q.worldedit.math.BlockVector2d;
+import com.sk89q.worldedit.math.BlockVector2;
 import com.sk89q.worldedit.regions.FlatRegion;
 
 /**
@@ -36,6 +36,6 @@ public interface FlatRegionFunction {
      * @return true if something was changed
      * @throws WorldEditException thrown on an error
      */
-    boolean apply(BlockVector2d position) throws WorldEditException;
+    boolean apply(BlockVector2 position) throws WorldEditException;
 
 }

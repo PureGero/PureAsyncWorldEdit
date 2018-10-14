@@ -22,7 +22,7 @@ package com.sk89q.worldedit.function.mask;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.sk89q.worldedit.extent.Extent;
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.world.block.BlockType;
 
 import java.util.Arrays;
@@ -94,7 +94,7 @@ public class BlockTypeMask extends AbstractExtentMask {
     }
 
     @Override
-    public boolean test(BlockVector3d vector) {
+    public boolean test(BlockVector3 vector) {
         return blocks.contains(getExtent().getBlock(vector).getBlockType());
     }
 

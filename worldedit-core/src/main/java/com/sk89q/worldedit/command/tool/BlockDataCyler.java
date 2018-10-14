@@ -27,7 +27,7 @@ import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extension.platform.Platform;
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.registry.state.Property;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.World;
@@ -55,7 +55,7 @@ public class BlockDataCyler implements DoubleActionBlockTool {
 
         World world = (World) clicked.getExtent();
 
-        BlockVector3d blockPoint = clicked.toVector().toBlockPoint();
+        BlockVector3 blockPoint = clicked.toVector().toBlockPoint();
         BlockState block = world.getBlock(blockPoint);
 
         if (!config.allowedDataCycleBlocks.isEmpty()

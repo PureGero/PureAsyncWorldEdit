@@ -24,12 +24,12 @@ import com.sk89q.worldedit.math.transform.AffineTransform;
 /**
  * An immutable 2-dimensional vector.
  */
-public final class Vector2d {
+public final class Vector2 {
     
-    public static final Vector2d ZERO = new Vector2d(0, 0);
-    public static final Vector2d UNIT_X = new Vector2d(1, 0);
-    public static final Vector2d UNIT_Z = new Vector2d(0, 1);
-    public static final Vector2d ONE = new Vector2d(1, 1);
+    public static final Vector2 ZERO = new Vector2(0, 0);
+    public static final Vector2 UNIT_X = new Vector2(1, 0);
+    public static final Vector2 UNIT_Z = new Vector2(0, 1);
+    public static final Vector2 ONE = new Vector2(1, 1);
 
     private final double x, z;
 
@@ -39,7 +39,7 @@ public final class Vector2d {
      * @param x the X coordinate
      * @param z the Z coordinate
      */
-    public Vector2d(double x, double z) {
+    public Vector2(double x, double z) {
         this.x = x;
         this.z = z;
     }
@@ -49,7 +49,7 @@ public final class Vector2d {
      *
      * @param other the other vector
      */
-    public Vector2d(Vector2d other) {
+    public Vector2(Vector2 other) {
         this.x = other.x;
         this.z = other.z;
     }
@@ -69,8 +69,8 @@ public final class Vector2d {
      * @param x the new X
      * @return a new vector
      */
-    public Vector2d withX(double x) {
-        return new Vector2d(x, z);
+    public Vector2 withX(double x) {
+        return new Vector2(x, z);
     }
 
     /**
@@ -88,8 +88,8 @@ public final class Vector2d {
      * @param z the new Z
      * @return a new vector
      */
-    public Vector2d withZ(double z) {
-        return new Vector2d(x, z);
+    public Vector2 withZ(double z) {
+        return new Vector2(x, z);
     }
 
     /**
@@ -98,7 +98,7 @@ public final class Vector2d {
      * @param other the other vector
      * @return a new vector
      */
-    public Vector2d add(Vector2d other) {
+    public Vector2 add(Vector2 other) {
         return add(other.x, other.z);
     }
 
@@ -109,8 +109,8 @@ public final class Vector2d {
      * @param z the value to add
      * @return a new vector
      */
-    public Vector2d add(double x, double z) {
-        return new Vector2d(this.x + x, this.z + z);
+    public Vector2 add(double x, double z) {
+        return new Vector2(this.x + x, this.z + z);
     }
 
     /**
@@ -120,15 +120,15 @@ public final class Vector2d {
      * @param others an array of vectors
      * @return a new vector
      */
-    public Vector2d add(Vector2d... others) {
+    public Vector2 add(Vector2... others) {
         double newX = x, newZ = z;
 
-        for (Vector2d other : others) {
+        for (Vector2 other : others) {
             newX += other.x;
             newZ += other.z;
         }
 
-        return new Vector2d(newX, newZ);
+        return new Vector2(newX, newZ);
     }
 
     /**
@@ -138,7 +138,7 @@ public final class Vector2d {
      * @param other the other vector
      * @return a new vector
      */
-    public Vector2d subtract(Vector2d other) {
+    public Vector2 subtract(Vector2 other) {
         return subtract(other.x, other.z);
     }
 
@@ -150,8 +150,8 @@ public final class Vector2d {
      * @param z the value to subtract
      * @return a new vector
      */
-    public Vector2d subtract(double x, double z) {
-        return new Vector2d(this.x - x, this.z - z);
+    public Vector2 subtract(double x, double z) {
+        return new Vector2(this.x - x, this.z - z);
     }
 
     /**
@@ -161,15 +161,15 @@ public final class Vector2d {
      * @param others an array of vectors
      * @return a new vector
      */
-    public Vector2d subtract(Vector2d... others) {
+    public Vector2 subtract(Vector2... others) {
         double newX = x, newZ = z;
 
-        for (Vector2d other : others) {
+        for (Vector2 other : others) {
             newX -= other.x;
             newZ -= other.z;
         }
 
-        return new Vector2d(newX, newZ);
+        return new Vector2(newX, newZ);
     }
 
     /**
@@ -178,7 +178,7 @@ public final class Vector2d {
      * @param other the other vector
      * @return a new vector
      */
-    public Vector2d multiply(Vector2d other) {
+    public Vector2 multiply(Vector2 other) {
         return multiply(other.x, other.z);
     }
 
@@ -189,8 +189,8 @@ public final class Vector2d {
      * @param z the value to multiply
      * @return a new vector
      */
-    public Vector2d multiply(double x, double z) {
-        return new Vector2d(this.x * x, this.z * z);
+    public Vector2 multiply(double x, double z) {
+        return new Vector2(this.x * x, this.z * z);
     }
 
     /**
@@ -199,15 +199,15 @@ public final class Vector2d {
      * @param others an array of vectors
      * @return a new vector
      */
-    public Vector2d multiply(Vector2d... others) {
+    public Vector2 multiply(Vector2... others) {
         double newX = x, newZ = z;
 
-        for (Vector2d other : others) {
+        for (Vector2 other : others) {
             newX *= other.x;
             newZ *= other.z;
         }
 
-        return new Vector2d(newX, newZ);
+        return new Vector2(newX, newZ);
     }
 
     /**
@@ -216,7 +216,7 @@ public final class Vector2d {
      * @param n the value to multiply
      * @return a new vector
      */
-    public Vector2d multiply(double n) {
+    public Vector2 multiply(double n) {
         return multiply(n, n);
     }
 
@@ -226,7 +226,7 @@ public final class Vector2d {
      * @param other the other vector
      * @return a new vector
      */
-    public Vector2d divide(Vector2d other) {
+    public Vector2 divide(Vector2 other) {
         return divide(other.x, other.z);
     }
 
@@ -237,8 +237,8 @@ public final class Vector2d {
      * @param z the value to divide by
      * @return a new vector
      */
-    public Vector2d divide(double x, double z) {
-        return new Vector2d(this.x / x, this.z / z);
+    public Vector2 divide(double x, double z) {
+        return new Vector2(this.x / x, this.z / z);
     }
 
     /**
@@ -247,7 +247,7 @@ public final class Vector2d {
      * @param n the value to divide by
      * @return a new vector
      */
-    public Vector2d divide(double n) {
+    public Vector2 divide(double n) {
         return divide(n, n);
     }
 
@@ -275,7 +275,7 @@ public final class Vector2d {
      * @param other the other vector
      * @return distance
      */
-    public double distance(Vector2d other) {
+    public double distance(Vector2 other) {
         return Math.sqrt(distanceSq(other));
     }
 
@@ -285,7 +285,7 @@ public final class Vector2d {
      * @param other the other vector
      * @return distance
      */
-    public double distanceSq(Vector2d other) {
+    public double distanceSq(Vector2 other) {
         double dx = other.x - x;
         double dz = other.z - z;
         return dx * dx + dz * dz;
@@ -297,7 +297,7 @@ public final class Vector2d {
      *
      * @return a new vector
      */
-    public Vector2d normalize() {
+    public Vector2 normalize() {
         return divide(length());
     }
 
@@ -307,7 +307,7 @@ public final class Vector2d {
      * @param other the other vector
      * @return the dot product of this and the other vector
      */
-    public double dot(Vector2d other) {
+    public double dot(Vector2 other) {
         return x * other.x + z * other.z;
     }
 
@@ -318,7 +318,7 @@ public final class Vector2d {
      * @param max the maximum point (X, Y, and Z are the lowest)
      * @return true if the vector is contained
      */
-    public boolean containedWithin(Vector2d min, Vector2d max) {
+    public boolean containedWithin(Vector2 min, Vector2 max) {
         return x >= min.x && x <= max.x
                 && z >= min.z && z <= max.z;
     }
@@ -328,8 +328,8 @@ public final class Vector2d {
      *
      * @return a new vector
      */
-    public Vector2d floor() {
-        return new Vector2d(Math.floor(x), Math.floor(z));
+    public Vector2 floor() {
+        return new Vector2(Math.floor(x), Math.floor(z));
     }
 
     /**
@@ -337,8 +337,8 @@ public final class Vector2d {
      *
      * @return a new vector
      */
-    public Vector2d ceil() {
-        return new Vector2d(Math.ceil(x), Math.ceil(z));
+    public Vector2 ceil() {
+        return new Vector2(Math.ceil(x), Math.ceil(z));
     }
 
     /**
@@ -348,8 +348,8 @@ public final class Vector2d {
      *
      * @return a new vector
      */
-    public Vector2d round() {
-        return new Vector2d(Math.floor(x + 0.5), Math.floor(z + 0.5));
+    public Vector2 round() {
+        return new Vector2(Math.floor(x + 0.5), Math.floor(z + 0.5));
     }
 
     /**
@@ -358,8 +358,8 @@ public final class Vector2d {
      *
      * @return a new vector
      */
-    public Vector2d abs() {
-        return new Vector2d(Math.abs(x), Math.abs(z));
+    public Vector2 abs() {
+        return new Vector2(Math.abs(x), Math.abs(z));
     }
 
     /**
@@ -373,7 +373,7 @@ public final class Vector2d {
      * @return a new vector
      * @see AffineTransform another method to transform vectors
      */
-    public Vector2d transform2D(double angle, double aboutX, double aboutZ, double translateX, double translateZ) {
+    public Vector2 transform2D(double angle, double aboutX, double aboutZ, double translateX, double translateZ) {
         angle = Math.toRadians(angle);
         double x = this.x - aboutX;
         double z = this.z - aboutZ;
@@ -381,7 +381,7 @@ public final class Vector2d {
         double sin = Math.sin(angle);
         double x2 = x * cos - z * sin;
         double z2 = x * sin + z * cos;
-        return new Vector2d(
+        return new Vector2(
                 x2 + aboutX + translateX,
                 z2 + aboutZ + translateZ);
     }
@@ -392,8 +392,8 @@ public final class Vector2d {
      * @param v2 the second vector
      * @return minimum
      */
-    public Vector2d getMinimum(Vector2d v2) {
-        return new Vector2d(
+    public Vector2 getMinimum(Vector2 v2) {
+        return new Vector2(
             Math.min(x, v2.x),
             Math.min(z, v2.z)
         );
@@ -405,23 +405,23 @@ public final class Vector2d {
      * @param v2 the second vector
      * @return maximum
      */
-    public Vector2d getMaximum(Vector2d v2) {
-        return new Vector2d(
+    public Vector2 getMaximum(Vector2 v2) {
+        return new Vector2(
             Math.max(x, v2.x),
             Math.max(z, v2.z)
         );
     }
     
-    public static BlockVector2d toBlockPoint(double x, double z) {
-        return new BlockVector2d(x, z);
+    public static BlockVector2 toBlockPoint(double x, double z) {
+        return new BlockVector2(x, z);
     }
 
     /**
-     * Create a new {@link BlockVector2d} from this vector.
+     * Create a new {@link BlockVector2} from this vector.
      *
-     * @return a new {@link BlockVector2d}
+     * @return a new {@link BlockVector2}
      */
-    public BlockVector2d toBlockPoint() {
+    public BlockVector2 toBlockPoint() {
         return toBlockPoint(x, z);
     }
 
@@ -430,8 +430,8 @@ public final class Vector2d {
      *
      * @return a new vector
      */
-    public Vector3d toVector3d() {
-        return toVector3d(0);
+    public Vector3 toVector3() {
+        return toVector3(0);
     }
 
     /**
@@ -440,17 +440,17 @@ public final class Vector2d {
      * @param y the Y component
      * @return a new vector
      */
-    public Vector3d toVector3d(double y) {
-        return new Vector3d(x, y, z);
+    public Vector3 toVector3(double y) {
+        return new Vector3(x, y, z);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof Vector2d)) {
+        if (!(obj instanceof Vector2)) {
             return false;
         }
 
-        Vector2d other = (Vector2d) obj;
+        Vector2 other = (Vector2) obj;
         return other.x == this.x && other.z == this.z;
 
     }

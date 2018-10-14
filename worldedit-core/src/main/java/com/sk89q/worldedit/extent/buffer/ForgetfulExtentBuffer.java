@@ -27,8 +27,8 @@ import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.Masks;
 import com.sk89q.worldedit.function.pattern.Pattern;
-import com.sk89q.worldedit.math.BlockVector3d;
-import com.sk89q.worldedit.math.Vector3d;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.math.Vector3;
 import com.sk89q.worldedit.regions.AbstractRegion;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionOperationException;
@@ -44,19 +44,19 @@ import java.util.Map;
  * actual application of the changes.
  *
  * <p>This buffer will not attempt to return results from the buffer when
- * accessor methods (such as {@link #getBlock(BlockVector3d)}) are called.</p>
+ * accessor methods (such as {@link #getBlock(BlockVector3)}) are called.</p>
  */
 public class ForgetfulExtentBuffer extends AbstractDelegateExtent implements Pattern {
 
-    private final Map<BlockVector3d, BlockStateHolder> buffer = new LinkedHashMap<>();
+    private final Map<BlockVector3, BlockStateHolder> buffer = new LinkedHashMap<>();
     private final Mask mask;
-    private BlockVector3d min = null;
-    private BlockVector3d max = null;
+    private BlockVector3 min = null;
+    private BlockVector3 max = null;
 
     /**
      * Create a new extent buffer that will buffer every change.
      *
-     * @param delegate the delegate extent for {@link Extent#getBlock(BlockVector3d)}, etc. calls
+     * @param delegate the delegate extent for {@link Extent#getBlock(BlockVector3)}, etc. calls
      */
     public ForgetfulExtentBuffer(Extent delegate) {
         this(delegate, Masks.alwaysTrue());
@@ -66,7 +66,7 @@ public class ForgetfulExtentBuffer extends AbstractDelegateExtent implements Pat
      * Create a new extent buffer that will buffer changes that meet the criteria
      * of the given mask.
      *
-     * @param delegate the delegate extent for {@link Extent#getBlock(BlockVector3d)}, etc. calls
+     * @param delegate the delegate extent for {@link Extent#getBlock(BlockVector3)}, etc. calls
      * @param mask the mask
      */
     public ForgetfulExtentBuffer(Extent delegate, Mask mask) {
@@ -77,7 +77,7 @@ public class ForgetfulExtentBuffer extends AbstractDelegateExtent implements Pat
     }
 
     @Override
-    public boolean setBlock(BlockVector3d location, BlockStateHolder block) throws WorldEditException {
+    public boolean setBlock(BlockVector3 location, BlockStateHolder block) throws WorldEditException {
         // Update minimum
         if (min == null) {
             min = location;
@@ -92,7 +92,7 @@ public class ForgetfulExtentBuffer extends AbstractDelegateExtent implements Pat
             max = max.getMaximum(location);
         }
 
-        BlockVector3d blockVector = location;
+        BlockVector3 blockVector = location;
         if (mask.test(blockVector)) {
             buffer.put(blockVector, block);
             return true;
@@ -102,7 +102,7 @@ public class ForgetfulExtentBuffer extends AbstractDelegateExtent implements Pat
     }
 
     @Override
-    public BlockStateHolder apply(BlockVector3d pos) {
+    public BlockStateHolder apply(BlockVector3 pos) {
         BlockStateHolder block = buffer.get(pos);
         if (block != null) {
             return block;
@@ -119,32 +119,32 @@ public class ForgetfulExtentBuffer extends AbstractDelegateExtent implements Pat
     public Region asRegion() {
         return new AbstractRegion(null) {
             @Override
-            public BlockVector3d getMinimumPoint() {
-                return min != null ? min : BlockVector3d.ZERO;
+            public BlockVector3 getMinimumPoint() {
+                return min != null ? min : BlockVector3.ZERO;
             }
 
             @Override
-            public BlockVector3d getMaximumPoint() {
-                return max != null ? max : BlockVector3d.ZERO;
+            public BlockVector3 getMaximumPoint() {
+                return max != null ? max : BlockVector3.ZERO;
             }
 
             @Override
-            public void expand(BlockVector3d... changes) throws RegionOperationException {
+            public void expand(BlockVector3... changes) throws RegionOperationException {
                 throw new UnsupportedOperationException("Cannot change the size of this region");
             }
 
             @Override
-            public void contract(BlockVector3d... changes) throws RegionOperationException {
+            public void contract(BlockVector3... changes) throws RegionOperationException {
                 throw new UnsupportedOperationException("Cannot change the size of this region");
             }
 
             @Override
-            public boolean contains(BlockVector3d position) {
+            public boolean contains(BlockVector3 position) {
                 return buffer.containsKey(position);
             }
 
             @Override
-            public Iterator<BlockVector3d> iterator() {
+            public Iterator<BlockVector3> iterator() {
                 return buffer.keySet().iterator();
             }
         };

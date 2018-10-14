@@ -26,7 +26,7 @@ import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.transform.BlockTransformExtent;
 import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
 import com.sk89q.worldedit.function.operation.Operation;
-import com.sk89q.worldedit.math.Vector3d;
+import com.sk89q.worldedit.math.Vector3;
 import com.sk89q.worldedit.math.transform.AffineTransform;
 import com.sk89q.worldedit.math.transform.CombinedTransform;
 import com.sk89q.worldedit.math.transform.Transform;
@@ -66,8 +66,8 @@ class FlattenedClipboardTransform {
      */
     public Region getTransformedRegion() {
         Region region = original.getRegion();
-        Vector3d minimum = region.getMinimumPoint().toVector3d();
-        Vector3d maximum = region.getMaximumPoint().toVector3d();
+        Vector3 minimum = region.getMinimumPoint().toVector3();
+        Vector3 maximum = region.getMaximumPoint().toVector3();
 
         Transform transformAround =
                 new CombinedTransform(
@@ -75,7 +75,7 @@ class FlattenedClipboardTransform {
                         transform,
                         new AffineTransform().translate(original.getOrigin()));
 
-        Vector3d[] corners = new Vector3d[] {
+        Vector3[] corners = new Vector3[] {
                 minimum,
                 maximum,
                 minimum.withX(maximum.getX()),
@@ -89,8 +89,8 @@ class FlattenedClipboardTransform {
             corners[i] = transformAround.apply(corners[i]);
         }
 
-        Vector3d newMinimum = corners[0];
-        Vector3d newMaximum = corners[0];
+        Vector3 newMinimum = corners[0];
+        Vector3 newMaximum = corners[0];
 
         for (int i = 1; i < corners.length; i++) {
             newMinimum = newMinimum.getMinimum(corners[i]);

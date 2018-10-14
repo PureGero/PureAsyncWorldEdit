@@ -26,9 +26,9 @@ import com.sk89q.worldedit.extension.platform.Platform;
 import com.sk89q.worldedit.function.mask.BlockTypeMask;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.operation.Operation;
-import com.sk89q.worldedit.math.BlockVector2d;
-import com.sk89q.worldedit.math.BlockVector3d;
-import com.sk89q.worldedit.math.Vector3d;
+import com.sk89q.worldedit.math.BlockVector2;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.math.Vector3;
 import com.sk89q.worldedit.util.Direction;
 import com.sk89q.worldedit.world.block.BlockStateHolder;
 import com.sk89q.worldedit.world.block.BlockType;
@@ -47,12 +47,12 @@ public abstract class AbstractWorld implements World {
     private int taskId = -1;
 
     @Override
-    public boolean useItem(BlockVector3d position, BaseItem item, Direction face) {
+    public boolean useItem(BlockVector3 position, BaseItem item, Direction face) {
         return false;
     }
 
     @Override
-    public final boolean setBlock(BlockVector3d pt, BlockStateHolder block) throws WorldEditException {
+    public final boolean setBlock(BlockVector3 pt, BlockStateHolder block) throws WorldEditException {
         return setBlock(pt, block, true);
     }
 
@@ -67,31 +67,31 @@ public abstract class AbstractWorld implements World {
     }
 
     @Override
-    public void dropItem(Vector3d pt, BaseItemStack item, int times) {
+    public void dropItem(Vector3 pt, BaseItemStack item, int times) {
         for (int i = 0; i < times; ++i) {
             dropItem(pt, item);
         }
     }
 
     @Override
-    public void checkLoadedChunk(BlockVector3d pt) {
+    public void checkLoadedChunk(BlockVector3 pt) {
     }
 
     @Override
-    public void fixAfterFastMode(Iterable<BlockVector2d> chunks) {
+    public void fixAfterFastMode(Iterable<BlockVector2> chunks) {
     }
 
     @Override
-    public void fixLighting(Iterable<BlockVector2d> chunks) {
+    public void fixLighting(Iterable<BlockVector2> chunks) {
     }
 
     @Override
-    public boolean playEffect(Vector3d position, int type, int data) {
+    public boolean playEffect(Vector3 position, int type, int data) {
         return false;
     }
 
     @Override
-    public boolean queueBlockBreakEffect(Platform server, BlockVector3d position, BlockType blockType, double priority) {
+    public boolean queueBlockBreakEffect(Platform server, BlockVector3 position, BlockType blockType, double priority) {
         if (taskId == -1) {
             taskId = server.schedule(0, 1, () -> {
                 int max = Math.max(1, Math.min(30, effectQueue.size() / 3));
@@ -107,19 +107,19 @@ public abstract class AbstractWorld implements World {
             return false;
         }
 
-        effectQueue.offer(new QueuedEffect(position.toVector3d(), blockType, priority));
+        effectQueue.offer(new QueuedEffect(position.toVector3(), blockType, priority));
 
         return true;
     }
 
     @Override
-    public BlockVector3d getMinimumPoint() {
-        return new BlockVector3d(-30000000, 0, -30000000);
+    public BlockVector3 getMinimumPoint() {
+        return new BlockVector3(-30000000, 0, -30000000);
     }
 
     @Override
-    public BlockVector3d getMaximumPoint() {
-        return new BlockVector3d(30000000, 255, 30000000);
+    public BlockVector3 getMaximumPoint() {
+        return new BlockVector3(30000000, 255, 30000000);
     }
 
     @Override
@@ -128,11 +128,11 @@ public abstract class AbstractWorld implements World {
     }
 
     private class QueuedEffect implements Comparable<QueuedEffect> {
-        private final Vector3d position;
+        private final Vector3 position;
         private final BlockType blockType;
         private final double priority;
 
-        private QueuedEffect(Vector3d position, BlockType blockType, double priority) {
+        private QueuedEffect(Vector3 position, BlockType blockType, double priority) {
             this.position = position;
             this.blockType = blockType;
             this.priority = priority;

@@ -19,8 +19,8 @@
 
 package com.sk89q.worldedit.math.noise;
 
-import com.sk89q.worldedit.math.Vector2d;
-import com.sk89q.worldedit.math.Vector3d;
+import com.sk89q.worldedit.math.Vector2;
+import com.sk89q.worldedit.math.Vector3;
 
 import net.royawesome.jlibnoise.module.Module;
 
@@ -47,12 +47,12 @@ abstract class JLibNoiseGenerator<V extends Module> implements NoiseGenerator {
     public abstract int getSeed();
 
     @Override
-    public float noise(Vector2d position) {
+    public float noise(Vector2 position) {
         return forceRange(module.GetValue(position.getX(), 0, position.getZ()));
     }
 
     @Override
-    public float noise(Vector3d position) {
+    public float noise(Vector3 position) {
         return forceRange(module.GetValue(position.getX(), position.getY(), position.getZ()));
     }
 

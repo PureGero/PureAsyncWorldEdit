@@ -20,7 +20,7 @@
 package com.sk89q.worldedit.regions.shape;
 
 import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.math.BlockVector2d;
+import com.sk89q.worldedit.math.BlockVector2;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.FlatRegion;
 import com.sk89q.worldedit.regions.Region;
@@ -48,8 +48,8 @@ public abstract class ArbitraryBiomeShape {
             this.extent = new CuboidRegion(extent.getWorld(), extent.getMinimumPoint(), extent.getMaximumPoint());
         }
 
-        BlockVector2d min = extent.getMinimumPoint().toBlockVector2d();
-        BlockVector2d max = extent.getMaximumPoint().toBlockVector2d();
+        BlockVector2 min = extent.getMinimumPoint().toBlockVector2();
+        BlockVector2 max = extent.getMaximumPoint().toBlockVector2();
 
         cacheOffsetX = min.getBlockX() - 1;
         cacheOffsetZ = min.getBlockZ() - 1;
@@ -60,7 +60,7 @@ public abstract class ArbitraryBiomeShape {
         cache = new BaseBiome[cacheSizeX * cacheSizeZ];
     }
 
-    protected Iterable<BlockVector2d> getExtent() {
+    protected Iterable<BlockVector2> getExtent() {
         return extent.asFlatRegion();
     }
 
@@ -130,7 +130,7 @@ public abstract class ArbitraryBiomeShape {
     public int generate(EditSession editSession, BaseBiome baseBiome, boolean hollow) {
         int affected = 0;
 
-        for (BlockVector2d position : getExtent()) {
+        for (BlockVector2 position : getExtent()) {
             int x = position.getBlockX();
             int z = position.getBlockZ();
 

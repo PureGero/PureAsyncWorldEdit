@@ -24,17 +24,17 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
-import com.sk89q.worldedit.math.Vector3d;
+import com.sk89q.worldedit.math.Vector3;
 
 import java.lang.reflect.Type;
 
 /**
  * Deserializes {@code Vector}s for GSON.
  */
-public class VectorAdapter implements JsonDeserializer<Vector3d> {
+public class VectorAdapter implements JsonDeserializer<Vector3> {
 
     @Override
-    public Vector3d deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+    public Vector3 deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         JsonArray jsonArray = json.getAsJsonArray();
         if (jsonArray.size() != 3) {
             throw new JsonParseException("Expected array of 3 length for Vector");
@@ -44,6 +44,6 @@ public class VectorAdapter implements JsonDeserializer<Vector3d> {
         double y = jsonArray.get(1).getAsDouble();
         double z = jsonArray.get(2).getAsDouble();
 
-        return new Vector3d(x, y, z);
+        return new Vector3(x, y, z);
     }
 }

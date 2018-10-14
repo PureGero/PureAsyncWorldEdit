@@ -24,7 +24,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.collect.Iterators;
 import com.sk89q.worldedit.history.change.BlockChange;
 import com.sk89q.worldedit.history.change.Change;
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.util.LocatedBlock;
 import com.sk89q.worldedit.util.collection.LocatedBlockList;
 
@@ -54,7 +54,7 @@ public class BlockOptimizedHistory extends ArrayListHistory {
 
         if (change instanceof BlockChange) {
             BlockChange blockChange = (BlockChange) change;
-            BlockVector3d position = blockChange.getPosition();
+            BlockVector3 position = blockChange.getPosition();
             previous.add(position, blockChange.getPrevious());
             current.add(position, blockChange.getCurrent());
         } else {
@@ -80,5 +80,4 @@ public class BlockOptimizedHistory extends ArrayListHistory {
     public int size() {
         return super.size() + previous.size();
     }
-
 }

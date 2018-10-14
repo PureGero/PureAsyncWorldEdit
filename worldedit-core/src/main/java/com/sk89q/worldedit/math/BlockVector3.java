@@ -29,17 +29,17 @@ import java.util.Comparator;
 /**
  * An immutable 3-dimensional vector.
  */
-public final class BlockVector3d {
+public final class BlockVector3 {
 
-    public static final BlockVector3d ZERO = new BlockVector3d(0, 0, 0);
-    public static final BlockVector3d UNIT_X = new BlockVector3d(1, 0, 0);
-    public static final BlockVector3d UNIT_Y = new BlockVector3d(0, 1, 0);
-    public static final BlockVector3d UNIT_Z = new BlockVector3d(0, 0, 1);
-    public static final BlockVector3d ONE = new BlockVector3d(1, 1, 1);
+    public static final BlockVector3 ZERO = new BlockVector3(0, 0, 0);
+    public static final BlockVector3 UNIT_X = new BlockVector3(1, 0, 0);
+    public static final BlockVector3 UNIT_Y = new BlockVector3(0, 1, 0);
+    public static final BlockVector3 UNIT_Z = new BlockVector3(0, 0, 1);
+    public static final BlockVector3 ONE = new BlockVector3(1, 1, 1);
 
     // thread-safe initialization idiom
     private static final class YzxOrderComparator {
-        private static final Comparator<BlockVector3d> YZX_ORDER = (a, b) -> {
+        private static final Comparator<BlockVector3> YZX_ORDER = (a, b) -> {
             return ComparisonChain.start()
                     .compare(a.y, b.y)
                     .compare(a.z, b.z)
@@ -54,7 +54,7 @@ public final class BlockVector3d {
      * <p>
      * Useful for sorting by chunk block storage order.
      */
-    public static Comparator<BlockVector3d> sortByCoordsYzx() {
+    public static Comparator<BlockVector3> sortByCoordsYzx() {
         return YzxOrderComparator.YZX_ORDER;
     }
 
@@ -67,7 +67,7 @@ public final class BlockVector3d {
      * @param y the Y coordinate
      * @param z the Z coordinate
      */
-    public BlockVector3d(double x, double y, double z) {
+    public BlockVector3(double x, double y, double z) {
         this((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z));
     }
 
@@ -78,7 +78,7 @@ public final class BlockVector3d {
      * @param y the Y coordinate
      * @param z the Z coordinate
      */
-    public BlockVector3d(int x, int y, int z) {
+    public BlockVector3(int x, int y, int z) {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -108,8 +108,8 @@ public final class BlockVector3d {
      * @param x the new X
      * @return a new vector
      */
-    public BlockVector3d withX(int x) {
-        return new BlockVector3d(x, y, z);
+    public BlockVector3 withX(int x) {
+        return new BlockVector3(x, y, z);
     }
 
     /**
@@ -136,8 +136,8 @@ public final class BlockVector3d {
      * @param y the new Y
      * @return a new vector
      */
-    public BlockVector3d withY(int y) {
-        return new BlockVector3d(x, y, z);
+    public BlockVector3 withY(int y) {
+        return new BlockVector3(x, y, z);
     }
 
     /**
@@ -164,8 +164,8 @@ public final class BlockVector3d {
      * @param z the new Z
      * @return a new vector
      */
-    public BlockVector3d withZ(int z) {
-        return new BlockVector3d(x, y, z);
+    public BlockVector3 withZ(int z) {
+        return new BlockVector3(x, y, z);
     }
 
     /**
@@ -174,7 +174,7 @@ public final class BlockVector3d {
      * @param other the other vector
      * @return a new vector
      */
-    public BlockVector3d add(BlockVector3d other) {
+    public BlockVector3 add(BlockVector3 other) {
         return add(other.x, other.y, other.z);
     }
 
@@ -186,8 +186,8 @@ public final class BlockVector3d {
      * @param z the value to add
      * @return a new vector
      */
-    public BlockVector3d add(int x, int y, int z) {
-        return new BlockVector3d(this.x + x, this.y + y, this.z + z);
+    public BlockVector3 add(int x, int y, int z) {
+        return new BlockVector3(this.x + x, this.y + y, this.z + z);
     }
 
     /**
@@ -197,16 +197,16 @@ public final class BlockVector3d {
      * @param others an array of vectors
      * @return a new vector
      */
-    public BlockVector3d add(BlockVector3d... others) {
+    public BlockVector3 add(BlockVector3... others) {
         int newX = x, newY = y, newZ = z;
 
-        for (BlockVector3d other : others) {
+        for (BlockVector3 other : others) {
             newX += other.x;
             newY += other.y;
             newZ += other.z;
         }
 
-        return new BlockVector3d(newX, newY, newZ);
+        return new BlockVector3(newX, newY, newZ);
     }
 
     /**
@@ -216,7 +216,7 @@ public final class BlockVector3d {
      * @param other the other vector
      * @return a new vector
      */
-    public BlockVector3d subtract(BlockVector3d other) {
+    public BlockVector3 subtract(BlockVector3 other) {
         return subtract(other.x, other.y, other.z);
     }
 
@@ -229,8 +229,8 @@ public final class BlockVector3d {
      * @param z the value to subtract
      * @return a new vector
      */
-    public BlockVector3d subtract(int x, int y, int z) {
-        return new BlockVector3d(this.x - x, this.y - y, this.z - z);
+    public BlockVector3 subtract(int x, int y, int z) {
+        return new BlockVector3(this.x - x, this.y - y, this.z - z);
     }
 
     /**
@@ -240,16 +240,16 @@ public final class BlockVector3d {
      * @param others an array of vectors
      * @return a new vector
      */
-    public BlockVector3d subtract(BlockVector3d... others) {
+    public BlockVector3 subtract(BlockVector3... others) {
         int newX = x, newY = y, newZ = z;
 
-        for (BlockVector3d other : others) {
+        for (BlockVector3 other : others) {
             newX -= other.x;
             newY -= other.y;
             newZ -= other.z;
         }
 
-        return new BlockVector3d(newX, newY, newZ);
+        return new BlockVector3(newX, newY, newZ);
     }
 
     /**
@@ -258,7 +258,7 @@ public final class BlockVector3d {
      * @param other the other vector
      * @return a new vector
      */
-    public BlockVector3d multiply(BlockVector3d other) {
+    public BlockVector3 multiply(BlockVector3 other) {
         return multiply(other.x, other.y, other.z);
     }
 
@@ -270,8 +270,8 @@ public final class BlockVector3d {
      * @param z the value to multiply
      * @return a new vector
      */
-    public BlockVector3d multiply(int x, int y, int z) {
-        return new BlockVector3d(this.x * x, this.y * y, this.z * z);
+    public BlockVector3 multiply(int x, int y, int z) {
+        return new BlockVector3(this.x * x, this.y * y, this.z * z);
     }
 
     /**
@@ -280,16 +280,16 @@ public final class BlockVector3d {
      * @param others an array of vectors
      * @return a new vector
      */
-    public BlockVector3d multiply(BlockVector3d... others) {
+    public BlockVector3 multiply(BlockVector3... others) {
         int newX = x, newY = y, newZ = z;
 
-        for (BlockVector3d other : others) {
+        for (BlockVector3 other : others) {
             newX *= other.x;
             newY *= other.y;
             newZ *= other.z;
         }
 
-        return new BlockVector3d(newX, newY, newZ);
+        return new BlockVector3(newX, newY, newZ);
     }
 
     /**
@@ -298,7 +298,7 @@ public final class BlockVector3d {
      * @param n the value to multiply
      * @return a new vector
      */
-    public BlockVector3d multiply(int n) {
+    public BlockVector3 multiply(int n) {
         return multiply(n, n, n);
     }
 
@@ -308,7 +308,7 @@ public final class BlockVector3d {
      * @param other the other vector
      * @return a new vector
      */
-    public BlockVector3d divide(BlockVector3d other) {
+    public BlockVector3 divide(BlockVector3 other) {
         return divide(other.x, other.y, other.z);
     }
 
@@ -320,8 +320,8 @@ public final class BlockVector3d {
      * @param z the value to divide by
      * @return a new vector
      */
-    public BlockVector3d divide(int x, int y, int z) {
-        return new BlockVector3d(this.x / x, this.y / y, this.z / z);
+    public BlockVector3 divide(int x, int y, int z) {
+        return new BlockVector3(this.x / x, this.y / y, this.z / z);
     }
 
     /**
@@ -330,7 +330,7 @@ public final class BlockVector3d {
      * @param n the value to divide by
      * @return a new vector
      */
-    public BlockVector3d divide(int n) {
+    public BlockVector3 divide(int n) {
         return divide(n, n, n);
     }
 
@@ -358,7 +358,7 @@ public final class BlockVector3d {
      * @param other the other vector
      * @return distance
      */
-    public double distance(BlockVector3d other) {
+    public double distance(BlockVector3 other) {
         return Math.sqrt(distanceSq(other));
     }
 
@@ -368,7 +368,7 @@ public final class BlockVector3d {
      * @param other the other vector
      * @return distance
      */
-    public int distanceSq(BlockVector3d other) {
+    public int distanceSq(BlockVector3 other) {
         int dx = other.x - x;
         int dy = other.y - y;
         int dz = other.z - z;
@@ -381,12 +381,12 @@ public final class BlockVector3d {
      *
      * @return a new vector
      */
-    public BlockVector3d normalize() {
+    public BlockVector3 normalize() {
         double len = length();
         double x = this.x / len;
         double y = this.y / len;
         double z = this.z / len;
-        return new BlockVector3d(x, y, z);
+        return new BlockVector3(x, y, z);
     }
 
     /**
@@ -395,7 +395,7 @@ public final class BlockVector3d {
      * @param other the other vector
      * @return the dot product of this and the other vector
      */
-    public double dot(BlockVector3d other) {
+    public double dot(BlockVector3 other) {
         return x * other.x + y * other.y + z * other.z;
     }
 
@@ -405,8 +405,8 @@ public final class BlockVector3d {
      * @param other the other vector
      * @return the cross product of this and the other vector
      */
-    public BlockVector3d cross(BlockVector3d other) {
-        return new BlockVector3d(
+    public BlockVector3 cross(BlockVector3 other) {
+        return new BlockVector3(
             y * other.z - z * other.y,
             z * other.x - x * other.z,
             x * other.y - y * other.x
@@ -420,7 +420,7 @@ public final class BlockVector3d {
      * @param max the maximum point (X, Y, and Z are the lowest)
      * @return true if the vector is contained
      */
-    public boolean containedWithin(BlockVector3d min, BlockVector3d max) {
+    public boolean containedWithin(BlockVector3 min, BlockVector3 max) {
         return x >= min.x && x <= max.x && y >= min.y && y <= max.y && z >= min.z && z <= max.z;
     }
 
@@ -431,13 +431,13 @@ public final class BlockVector3d {
      * @param max the maximum value
      * @return a new vector
      */
-    public BlockVector3d clampY(int min, int max) {
+    public BlockVector3 clampY(int min, int max) {
         checkArgument(min <= max, "minimum cannot be greater than maximum");
         if (y < min) {
-            return new BlockVector3d(x, min, z);
+            return new BlockVector3(x, min, z);
         }
         if (y > max) {
-            return new BlockVector3d(x, max, z);
+            return new BlockVector3(x, max, z);
         }
         return this;
     }
@@ -447,8 +447,8 @@ public final class BlockVector3d {
      *
      * @return a new vector
      */
-    public BlockVector3d floor() {
-        // already floored, kept for feature parity with Vector3d
+    public BlockVector3 floor() {
+        // already floored, kept for feature parity with Vector3
         return this;
     }
 
@@ -457,8 +457,8 @@ public final class BlockVector3d {
      *
      * @return a new vector
      */
-    public BlockVector3d ceil() {
-        // already raised, kept for feature parity with Vector3d
+    public BlockVector3 ceil() {
+        // already raised, kept for feature parity with Vector3
         return this;
     }
 
@@ -469,8 +469,8 @@ public final class BlockVector3d {
      *
      * @return a new vector
      */
-    public BlockVector3d round() {
-        // already rounded, kept for feature parity with Vector3d
+    public BlockVector3 round() {
+        // already rounded, kept for feature parity with Vector3
         return this;
     }
 
@@ -480,8 +480,8 @@ public final class BlockVector3d {
      *
      * @return a new vector
      */
-    public BlockVector3d abs() {
-        return new BlockVector3d(Math.abs(x), Math.abs(y), Math.abs(z));
+    public BlockVector3 abs() {
+        return new BlockVector3(Math.abs(x), Math.abs(y), Math.abs(z));
     }
 
     /**
@@ -495,7 +495,7 @@ public final class BlockVector3d {
      * @return a new vector
      * @see AffineTransform another method to transform vectors
      */
-    public BlockVector3d transform2D(double angle, double aboutX, double aboutZ, double translateX, double translateZ) {
+    public BlockVector3 transform2D(double angle, double aboutX, double aboutZ, double translateX, double translateZ) {
         angle = Math.toRadians(angle);
         double x = this.x - aboutX;
         double z = this.z - aboutZ;
@@ -504,7 +504,7 @@ public final class BlockVector3d {
         double x2 = x * cos - z * sin;
         double z2 = x * sin + z * cos;
 
-        return new BlockVector3d(
+        return new BlockVector3(
             x2 + aboutX + translateX,
             y,
             z2 + aboutZ + translateZ
@@ -551,8 +551,8 @@ public final class BlockVector3d {
      * @param v2 the second vector
      * @return minimum
      */
-    public BlockVector3d getMinimum(BlockVector3d v2) {
-        return new BlockVector3d(
+    public BlockVector3 getMinimum(BlockVector3 v2) {
+        return new BlockVector3(
                 Math.min(x, v2.x),
                 Math.min(y, v2.y),
                 Math.min(z, v2.z)
@@ -565,8 +565,8 @@ public final class BlockVector3d {
      * @param v2 the second vector
      * @return maximum
      */
-    public BlockVector3d getMaximum(BlockVector3d v2) {
-        return new BlockVector3d(
+    public BlockVector3 getMaximum(BlockVector3 v2) {
+        return new BlockVector3(
                 Math.max(x, v2.x),
                 Math.max(y, v2.y),
                 Math.max(z, v2.z)
@@ -576,23 +576,23 @@ public final class BlockVector3d {
     /**
      * Creates a 2D vector by dropping the Y component from this vector.
      *
-     * @return a new {@link BlockVector2d}
+     * @return a new {@link BlockVector2}
      */
-    public BlockVector2d toBlockVector2d() {
-        return new BlockVector2d(x, z);
+    public BlockVector2 toBlockVector2() {
+        return new BlockVector2(x, z);
     }
 
-    public Vector3d toVector3d() {
-        return new Vector3d(x, y, z);
+    public Vector3 toVector3() {
+        return new Vector3(x, y, z);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof BlockVector3d)) {
+        if (!(obj instanceof BlockVector3)) {
             return false;
         }
 
-        BlockVector3d other = (BlockVector3d) obj;
+        BlockVector3 other = (BlockVector3) obj;
         return other.x == this.x && other.y == this.y && other.z == this.z;
     }
 

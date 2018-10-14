@@ -23,14 +23,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.function.FlatRegionFunction;
-import com.sk89q.worldedit.math.BlockVector2d;
+import com.sk89q.worldedit.math.BlockVector2;
 
 /**
  * Offsets the position parameter by adding a given offset vector.
  */
 public class FlatRegionOffset implements FlatRegionFunction {
 
-    private BlockVector2d offset;
+    private BlockVector2 offset;
     private final FlatRegionFunction function;
 
     /**
@@ -39,7 +39,7 @@ public class FlatRegionOffset implements FlatRegionFunction {
      * @param offset the offset
      * @param function the function that is called with the offset position
      */
-    public FlatRegionOffset(BlockVector2d offset, FlatRegionFunction function) {
+    public FlatRegionOffset(BlockVector2 offset, FlatRegionFunction function) {
         checkNotNull(function);
         setOffset(offset);
         this.function = function;
@@ -50,7 +50,7 @@ public class FlatRegionOffset implements FlatRegionFunction {
      *
      * @return the offset
      */
-    public BlockVector2d getOffset() {
+    public BlockVector2 getOffset() {
         return offset;
     }
 
@@ -59,13 +59,13 @@ public class FlatRegionOffset implements FlatRegionFunction {
      *
      * @param offset the offset
      */
-    public void setOffset(BlockVector2d offset) {
+    public void setOffset(BlockVector2 offset) {
         checkNotNull(offset);
         this.offset = offset;
     }
 
     @Override
-    public boolean apply(BlockVector2d position) throws WorldEditException {
+    public boolean apply(BlockVector2 position) throws WorldEditException {
         return function.apply(position.add(offset));
     }
 }

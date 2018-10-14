@@ -19,9 +19,9 @@
 
 package com.sk89q.worldedit.math.transform;
 
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.math.MathUtils;
-import com.sk89q.worldedit.math.Vector3d;
+import com.sk89q.worldedit.math.Vector3;
 
 /**
  * An affine transform.
@@ -237,11 +237,11 @@ public class AffineTransform implements Transform {
                 n20, n21, n22, n23);
     }
 
-    public AffineTransform translate(Vector3d vec) {
+    public AffineTransform translate(Vector3 vec) {
         return translate(vec.getX(), vec.getY(), vec.getZ());
     }
 
-    public AffineTransform translate(BlockVector3d vec) {
+    public AffineTransform translate(BlockVector3 vec) {
         return translate(vec.getX(), vec.getY(), vec.getZ());
     }
 
@@ -287,13 +287,13 @@ public class AffineTransform implements Transform {
         return concatenate(new AffineTransform(sx, 0, 0, 0, 0, sy, 0, 0, 0, 0, sz, 0));
     }
 
-    public AffineTransform scale(Vector3d vec) {
+    public AffineTransform scale(Vector3 vec) {
         return scale(vec.getX(), vec.getY(), vec.getZ());
     }
 
     @Override
-    public Vector3d apply(Vector3d vector) {
-        return new Vector3d(
+    public Vector3 apply(Vector3 vector) {
+        return new Vector3(
                 vector.getX() * m00 + vector.getY() * m01 + vector.getZ() * m02 + m03,
                 vector.getX() * m10 + vector.getY() * m11 + vector.getZ() * m12 + m13,
                 vector.getX() * m20 + vector.getY() * m21 + vector.getZ() * m22 + m23);

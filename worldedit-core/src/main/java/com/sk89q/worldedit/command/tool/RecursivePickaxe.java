@@ -26,7 +26,7 @@ import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extension.platform.Platform;
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.block.BlockType;
 import com.sk89q.worldedit.world.block.BlockTypes;
@@ -55,7 +55,7 @@ public class RecursivePickaxe implements BlockTool {
     public boolean actPrimary(Platform server, LocalConfiguration config, Player player, LocalSession session, com.sk89q.worldedit.util.Location clicked) {
         World world = (World) clicked.getExtent();
 
-        BlockVector3d origin = clicked.toVector().toBlockPoint();
+        BlockVector3 origin = clicked.toVector().toBlockPoint();
         BlockType initialType = world.getBlock(origin).getBlockType();
 
         if (initialType.getMaterial().isAir()) {
@@ -82,8 +82,8 @@ public class RecursivePickaxe implements BlockTool {
         return true;
     }
 
-    private static void recurse(Platform server, EditSession editSession, World world, BlockVector3d pos,
-            BlockVector3d origin, double size, BlockType initialType, Set<BlockVector3d> visited) throws MaxChangedBlocksException {
+    private static void recurse(Platform server, EditSession editSession, World world, BlockVector3 pos,
+            BlockVector3 origin, double size, BlockType initialType, Set<BlockVector3> visited) throws MaxChangedBlocksException {
 
         final double distanceSq = origin.distanceSq(pos);
         if (distanceSq > size*size || visited.contains(pos)) {

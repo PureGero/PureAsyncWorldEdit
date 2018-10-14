@@ -35,8 +35,8 @@ import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.internal.annotation.Selection;
 import com.sk89q.worldedit.internal.expression.ExpressionException;
-import com.sk89q.worldedit.math.BlockVector3d;
-import com.sk89q.worldedit.math.Vector3d;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.math.Vector3;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.TreeGenerator.TreeType;
 import com.sk89q.worldedit.util.command.binding.Range;
@@ -117,7 +117,7 @@ public class GenerationCommands {
         worldEdit.checkMaxRadius(radiusZ);
         worldEdit.checkMaxRadius(height);
 
-        BlockVector3d pos = session.getPlacementPosition(player);
+        BlockVector3 pos = session.getPlacementPosition(player);
         int affected = editSession.makeCylinder(pos, pattern, radiusX, radiusZ, height, !hollow);
         player.print(affected + " block(s) have been created.");
     }
@@ -178,7 +178,7 @@ public class GenerationCommands {
         worldEdit.checkMaxRadius(radiusY);
         worldEdit.checkMaxRadius(radiusZ);
 
-        BlockVector3d pos = session.getPlacementPosition(player);
+        BlockVector3 pos = session.getPlacementPosition(player);
         if (raised) {
             pos = pos.add(0, (int) radiusY, 0);
         }
@@ -241,7 +241,7 @@ public class GenerationCommands {
     @CommandPermissions("worldedit.generation.pyramid")
     @Logging(PLACEMENT)
     public void pyramid(Player player, LocalSession session, EditSession editSession, Pattern pattern, @Range(min = 1) int size, @Switch('h') boolean hollow) throws WorldEditException {
-        BlockVector3d pos = session.getPlacementPosition(player);
+        BlockVector3 pos = session.getPlacementPosition(player);
         worldEdit.checkMaxRadius(size);
         int affected = editSession.makePyramid(pos, pattern, size, !hollow);
         player.findFreePosition();
@@ -278,24 +278,24 @@ public class GenerationCommands {
                          @Switch('o') boolean offset,
                          @Switch('c') boolean offsetCenter) throws WorldEditException {
 
-        final Vector3d zero;
-        Vector3d unit;
+        final Vector3 zero;
+        Vector3 unit;
 
         if (useRawCoords) {
-            zero = Vector3d.ZERO;
-            unit = Vector3d.ONE;
+            zero = Vector3.ZERO;
+            unit = Vector3.ONE;
         } else if (offset) {
-            zero = session.getPlacementPosition(player).toVector3d();
-            unit = Vector3d.ONE;
+            zero = session.getPlacementPosition(player).toVector3();
+            unit = Vector3.ONE;
         } else if (offsetCenter) {
-            final Vector3d min = region.getMinimumPoint().toVector3d();
-            final Vector3d max = region.getMaximumPoint().toVector3d();
+            final Vector3 min = region.getMinimumPoint().toVector3();
+            final Vector3 max = region.getMaximumPoint().toVector3();
 
             zero = max.add(min).multiply(0.5);
-            unit = Vector3d.ONE;
+            unit = Vector3.ONE;
         } else {
-            final Vector3d min = region.getMinimumPoint().toVector3d();
-            final Vector3d max = region.getMaximumPoint().toVector3d();
+            final Vector3 min = region.getMinimumPoint().toVector3();
+            final Vector3 max = region.getMaximumPoint().toVector3();
 
             zero = max.add(min).multiply(0.5);
             unit = max.subtract(zero);
@@ -343,24 +343,24 @@ public class GenerationCommands {
                               @Switch('r') boolean useRawCoords,
                               @Switch('o') boolean offset,
                               @Switch('c') boolean offsetCenter) throws WorldEditException {
-        final Vector3d zero;
-        Vector3d unit;
+        final Vector3 zero;
+        Vector3 unit;
 
         if (useRawCoords) {
-            zero = Vector3d.ZERO;
-            unit = Vector3d.ONE;
+            zero = Vector3.ZERO;
+            unit = Vector3.ONE;
         } else if (offset) {
-            zero = session.getPlacementPosition(player).toVector3d();
-            unit = Vector3d.ONE;
+            zero = session.getPlacementPosition(player).toVector3();
+            unit = Vector3.ONE;
         } else if (offsetCenter) {
-            final Vector3d min = region.getMinimumPoint().toVector3d();
-            final Vector3d max = region.getMaximumPoint().toVector3d();
+            final Vector3 min = region.getMinimumPoint().toVector3();
+            final Vector3 max = region.getMaximumPoint().toVector3();
 
             zero = max.add(min).multiply(0.5);
-            unit = Vector3d.ONE;
+            unit = Vector3.ONE;
         } else {
-            final Vector3d min = region.getMinimumPoint().toVector3d();
-            final Vector3d max = region.getMaximumPoint().toVector3d();
+            final Vector3 min = region.getMinimumPoint().toVector3();
+            final Vector3 max = region.getMaximumPoint().toVector3();
 
             zero = max.add(min).multiply(0.5);
             unit = max.subtract(zero);

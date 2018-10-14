@@ -31,7 +31,7 @@ import com.sk89q.jnbt.ShortTag;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.world.block.BaseBlock;
 
@@ -75,9 +75,9 @@ public class SpongeSchematicWriter implements ClipboardWriter {
      */
     private Map<String, Tag> write1(Clipboard clipboard) throws IOException {
         Region region = clipboard.getRegion();
-        BlockVector3d origin = clipboard.getOrigin();
-        BlockVector3d min = region.getMinimumPoint();
-        BlockVector3d offset = min.subtract(origin);
+        BlockVector3 origin = clipboard.getOrigin();
+        BlockVector3 min = region.getMinimumPoint();
+        BlockVector3 offset = min.subtract(origin);
         int width = region.getWidth();
         int height = region.getHeight();
         int length = region.getLength();
@@ -126,7 +126,7 @@ public class SpongeSchematicWriter implements ClipboardWriter {
                 int z0 = min.getBlockZ() + z;
                 for (int x = 0; x < width; x++) {
                     int x0 = min.getBlockX() + x;
-                    BlockVector3d point = new BlockVector3d(x0, y0, z0);
+                    BlockVector3 point = new BlockVector3(x0, y0, z0);
                     BaseBlock block = clipboard.getFullBlock(point);
                     if (block.getNbtData() != null) {
                         Map<String, Tag> values = new HashMap<>();

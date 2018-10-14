@@ -27,8 +27,8 @@ import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.RegionFunction;
 import com.sk89q.worldedit.internal.helper.MCDirections;
-import com.sk89q.worldedit.math.BlockVector3d;
-import com.sk89q.worldedit.math.Vector3d;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.math.Vector3;
 import com.sk89q.worldedit.math.transform.Transform;
 import com.sk89q.worldedit.util.Direction;
 import com.sk89q.worldedit.util.Direction.Flag;
@@ -41,8 +41,8 @@ public class ExtentBlockCopy implements RegionFunction {
 
     private final Extent source;
     private final Extent destination;
-    private final BlockVector3d from;
-    private final BlockVector3d to;
+    private final BlockVector3 from;
+    private final BlockVector3 to;
     private final Transform transform;
 
     /**
@@ -54,7 +54,7 @@ public class ExtentBlockCopy implements RegionFunction {
      * @param to the destination offset
      * @param transform a transform to apply to positions (after source offset, before destination offset)
      */
-    public ExtentBlockCopy(Extent source, BlockVector3d from, Extent destination, BlockVector3d to, Transform transform) {
+    public ExtentBlockCopy(Extent source, BlockVector3 from, Extent destination, BlockVector3 to, Transform transform) {
         checkNotNull(source);
         checkNotNull(from);
         checkNotNull(destination);
@@ -68,10 +68,10 @@ public class ExtentBlockCopy implements RegionFunction {
     }
 
     @Override
-    public boolean apply(BlockVector3d position) throws WorldEditException {
+    public boolean apply(BlockVector3 position) throws WorldEditException {
         BaseBlock block = source.getFullBlock(position);
-        BlockVector3d orig = position.subtract(from);
-        BlockVector3d transformed = transform.apply(orig.toVector3d()).toBlockPoint();
+        BlockVector3 orig = position.subtract(from);
+        BlockVector3 transformed = transform.apply(orig.toVector3()).toBlockPoint();
 
         // Apply transformations to NBT data if necessary
         block = transformNbtData(block);
@@ -97,7 +97,7 @@ public class ExtentBlockCopy implements RegionFunction {
                 Direction direction = MCDirections.fromRotation(rot);
 
                 if (direction != null) {
-                    Vector3d vector = transform.apply(direction.toVector()).subtract(transform.apply(Vector3d.ZERO)).normalize();
+                    Vector3 vector = transform.apply(direction.toVector()).subtract(transform.apply(Vector3.ZERO)).normalize();
                     Direction newDirection = Direction.findClosest(vector, Flag.CARDINAL | Flag.ORDINAL | Flag.SECONDARY_ORDINAL);
 
                     if (newDirection != null) {

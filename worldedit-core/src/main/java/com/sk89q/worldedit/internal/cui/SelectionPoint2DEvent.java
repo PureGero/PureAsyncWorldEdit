@@ -19,8 +19,8 @@
 
 package com.sk89q.worldedit.internal.cui;
 
-import com.sk89q.worldedit.math.BlockVector2d;
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector2;
+import com.sk89q.worldedit.math.BlockVector3;
 
 public class SelectionPoint2DEvent implements CUIEvent {
 
@@ -29,14 +29,14 @@ public class SelectionPoint2DEvent implements CUIEvent {
     protected final int blockZ;
     protected final int area;
 
-    public SelectionPoint2DEvent(int id, BlockVector2d pos, int area) {
+    public SelectionPoint2DEvent(int id, BlockVector2 pos, int area) {
         this.id = id;
         this.blockX = pos.getX();
         this.blockZ = pos.getZ();
         this.area = area;
     }
 
-    public SelectionPoint2DEvent(int id, BlockVector3d pos, int area) {
+    public SelectionPoint2DEvent(int id, BlockVector3 pos, int area) {
         this.id = id;
         this.blockX = pos.getX();
         this.blockZ = pos.getZ();

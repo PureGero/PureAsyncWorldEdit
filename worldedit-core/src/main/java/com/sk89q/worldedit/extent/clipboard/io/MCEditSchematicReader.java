@@ -36,7 +36,7 @@ import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.clipboard.io.legacycompat.NBTCompatibilityHandler;
 import com.sk89q.worldedit.extent.clipboard.io.legacycompat.SignCompatibilityHandler;
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.Location;
@@ -104,7 +104,7 @@ public class MCEditSchematicReader extends NBTSchematicReader {
         // Metadata
         // ====================================================================
 
-        BlockVector3d origin;
+        BlockVector3 origin;
         Region region;
 
         // Get information
@@ -116,18 +116,18 @@ public class MCEditSchematicReader extends NBTSchematicReader {
             int originX = requireTag(schematic, "WEOriginX", IntTag.class).getValue();
             int originY = requireTag(schematic, "WEOriginY", IntTag.class).getValue();
             int originZ = requireTag(schematic, "WEOriginZ", IntTag.class).getValue();
-            BlockVector3d min = new BlockVector3d(originX, originY, originZ);
+            BlockVector3 min = new BlockVector3(originX, originY, originZ);
 
             int offsetX = requireTag(schematic, "WEOffsetX", IntTag.class).getValue();
             int offsetY = requireTag(schematic, "WEOffsetY", IntTag.class).getValue();
             int offsetZ = requireTag(schematic, "WEOffsetZ", IntTag.class).getValue();
-            BlockVector3d offset = new BlockVector3d(offsetX, offsetY, offsetZ);
+            BlockVector3 offset = new BlockVector3(offsetX, offsetY, offsetZ);
 
             origin = min.subtract(offset);
-            region = new CuboidRegion(min, min.add(width, height, length).subtract(BlockVector3d.ONE));
+            region = new CuboidRegion(min, min.add(width, height, length).subtract(BlockVector3.ONE));
         } catch (IOException ignored) {
-            origin = BlockVector3d.ZERO;
-            region = new CuboidRegion(origin, origin.add(width, height, length).subtract(BlockVector3d.ONE));
+            origin = BlockVector3.ZERO;
+            region = new CuboidRegion(origin, origin.add(width, height, length).subtract(BlockVector3.ONE));
         }
 
         // ====================================================================
@@ -161,7 +161,7 @@ public class MCEditSchematicReader extends NBTSchematicReader {
 
         // Need to pull out tile entities
         List<Tag> tileEntities = requireTag(schematic, "TileEntities", ListTag.class).getValue();
-        Map<BlockVector3d, Map<String, Tag>> tileEntitiesMap = new HashMap<>();
+        Map<BlockVector3, Map<String, Tag>> tileEntitiesMap = new HashMap<>();
 
         for (Tag tag : tileEntities) {
             if (!(tag instanceof CompoundTag)) continue;
@@ -205,7 +205,7 @@ public class MCEditSchematicReader extends NBTSchematicReader {
                 }
             }
 
-            BlockVector3d vec = new BlockVector3d(x, y, z);
+            BlockVector3 vec = new BlockVector3(x, y, z);
             tileEntitiesMap.put(vec, values);
         }
 
@@ -219,7 +219,7 @@ public class MCEditSchematicReader extends NBTSchematicReader {
             for (int y = 0; y < height; ++y) {
                 for (int z = 0; z < length; ++z) {
                     int index = y * width * length + z * width + x;
-                    BlockVector3d pt = new BlockVector3d(x, y, z);
+                    BlockVector3 pt = new BlockVector3(x, y, z);
                     BlockState state = LegacyMapper.getInstance().getBlockFromLegacy(blocks[index], blockData[index]);
 
                     try {

@@ -26,7 +26,7 @@ import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.event.Event;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extent.Extent;
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.block.BlockStateHolder;
 
@@ -53,7 +53,7 @@ import javax.annotation.Nullable;
  * is set to {@link Stage#BEFORE_HISTORY}, then you can drop (or log) changes
  * before the change has reached the history, reordering, and actual change
  * extents, <em>but</em> that means that any changes made with
- * {@link EditSession#rawSetBlock(BlockVector3d, BlockStateHolder)} will skip your
+ * {@link EditSession#rawSetBlock(BlockVector3, BlockStateHolder)} will skip your
  * custom {@link Extent} because that method bypasses history (and reorder).
  * It is thus recommended that loggers intercept at {@link Stage#BEFORE_CHANGE}
  * and block interceptors intercept at BOTH {@link Stage#BEFORE_CHANGE} and

@@ -27,7 +27,7 @@ import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extension.platform.Platform;
 import com.sk89q.worldedit.function.pattern.Pattern;
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.block.BlockStateHolder;
 
@@ -56,7 +56,7 @@ public class LongRangeBuildTool extends BrushTool implements DoubleActionTraceTo
         if (pos == null) return false;
         EditSession eS = session.createEditSession(player);
         try {
-            BlockVector3d blockPoint = pos.toVector().toBlockPoint();
+            BlockVector3 blockPoint = pos.toVector().toBlockPoint();
             BlockStateHolder applied = secondary.apply(blockPoint);
             if (applied.getBlockType().getMaterial().isAir()) {
                 eS.setBlock(blockPoint, secondary);
@@ -77,7 +77,7 @@ public class LongRangeBuildTool extends BrushTool implements DoubleActionTraceTo
         if (pos == null) return false;
         EditSession eS = session.createEditSession(player);
         try {
-            BlockVector3d blockPoint = pos.toVector().toBlockPoint();
+            BlockVector3 blockPoint = pos.toVector().toBlockPoint();
             BlockStateHolder applied = primary.apply(blockPoint);
             if (applied.getBlockType().getMaterial().isAir()) {
                 eS.setBlock(blockPoint, primary);

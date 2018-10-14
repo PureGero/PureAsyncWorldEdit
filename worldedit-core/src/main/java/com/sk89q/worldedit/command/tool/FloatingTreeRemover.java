@@ -26,7 +26,7 @@ import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extension.platform.Platform;
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.util.Direction;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.World;
@@ -79,13 +79,13 @@ public class FloatingTreeRemover implements BlockTool {
         final EditSession editSession = session.createEditSession(player);
 
         try {
-            final Set<BlockVector3d> blockSet = bfs(world, clicked.toVector().toBlockPoint());
+            final Set<BlockVector3> blockSet = bfs(world, clicked.toVector().toBlockPoint());
             if (blockSet == null) {
                 player.printError("That's not a floating tree.");
                 return true;
             }
 
-            for (BlockVector3d blockVector : blockSet) {
+            for (BlockVector3 blockVector : blockSet) {
                 final BlockState otherState = editSession.getBlock(blockVector);
                 if (isTreeBlock(otherState.getBlockType())) {
                     editSession.setBlock(blockVector, BlockTypes.AIR.getDefaultState());
@@ -100,7 +100,7 @@ public class FloatingTreeRemover implements BlockTool {
         return true;
     }
 
-    private BlockVector3d[] recurseDirections = {
+    private BlockVector3[] recurseDirections = {
             Direction.NORTH.toBlockVector(),
             Direction.EAST.toBlockVector(),
             Direction.SOUTH.toBlockVector(),
@@ -116,17 +116,17 @@ public class FloatingTreeRemover implements BlockTool {
      * @param origin any point contained in the floating tree
      * @return a set containing all blocks in the tree/shroom or null if this is not a floating tree/shroom.
      */
-    private Set<BlockVector3d> bfs(World world, BlockVector3d origin) throws MaxChangedBlocksException {
-        final Set<BlockVector3d> visited = new HashSet<>();
-        final LinkedList<BlockVector3d> queue = new LinkedList<>();
+    private Set<BlockVector3> bfs(World world, BlockVector3 origin) throws MaxChangedBlocksException {
+        final Set<BlockVector3> visited = new HashSet<>();
+        final LinkedList<BlockVector3> queue = new LinkedList<>();
 
         queue.addLast(origin);
         visited.add(origin);
 
         while (!queue.isEmpty()) {
-            final BlockVector3d current = queue.removeFirst();
-            for (BlockVector3d recurseDirection : recurseDirections) {
-                final BlockVector3d next = current.add(recurseDirection);
+            final BlockVector3 current = queue.removeFirst();
+            for (BlockVector3 recurseDirection : recurseDirections) {
+                final BlockVector3 next = current.add(recurseDirection);
                 if (origin.distanceSq(next) > rangeSq) {
                     // Maximum range exceeded => stop walking
                     continue;

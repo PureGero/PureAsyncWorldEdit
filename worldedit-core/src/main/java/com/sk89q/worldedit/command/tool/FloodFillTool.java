@@ -27,7 +27,7 @@ import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extension.platform.Platform;
 import com.sk89q.worldedit.function.pattern.Pattern;
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.block.BlockType;
@@ -58,7 +58,7 @@ public class FloodFillTool implements BlockTool {
     public boolean actPrimary(Platform server, LocalConfiguration config, Player player, LocalSession session, Location clicked) {
         World world = (World) clicked.getExtent();
 
-        BlockVector3d origin = clicked.toVector().toBlockPoint();
+        BlockVector3 origin = clicked.toVector().toBlockPoint();
         BlockType initialType = world.getBlock(origin).getBlockType();
 
         if (initialType.getMaterial().isAir()) {
@@ -82,8 +82,8 @@ public class FloodFillTool implements BlockTool {
         return true;
     }
 
-    private void recurse(EditSession editSession, BlockVector3d pos, BlockVector3d origin, int size, BlockType initialType,
-            Set<BlockVector3d> visited) throws MaxChangedBlocksException {
+    private void recurse(EditSession editSession, BlockVector3 pos, BlockVector3 origin, int size, BlockType initialType,
+            Set<BlockVector3> visited) throws MaxChangedBlocksException {
 
         if (origin.distance(pos) > size || visited.contains(pos)) {
             return;

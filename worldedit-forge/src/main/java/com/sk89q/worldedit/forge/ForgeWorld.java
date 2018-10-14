@@ -31,9 +31,9 @@ import com.sk89q.worldedit.blocks.BaseItemStack;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.internal.Constants;
-import com.sk89q.worldedit.math.BlockVector2d;
-import com.sk89q.worldedit.math.BlockVector3d;
-import com.sk89q.worldedit.math.Vector3d;
+import com.sk89q.worldedit.math.BlockVector2;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.math.Vector3;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.registry.state.Property;
@@ -169,7 +169,7 @@ public class ForgeWorld extends AbstractWorld {
     }
 
     @Override
-    public boolean setBlock(BlockVector3d position, BlockStateHolder block, boolean notifyAndLight) throws WorldEditException {
+    public boolean setBlock(BlockVector3 position, BlockStateHolder block, boolean notifyAndLight) throws WorldEditException {
         checkNotNull(position);
         checkNotNull(block);
 
@@ -236,13 +236,13 @@ public class ForgeWorld extends AbstractWorld {
     }
 
     @Override
-    public int getBlockLightLevel(BlockVector3d position) {
+    public int getBlockLightLevel(BlockVector3 position) {
         checkNotNull(position);
         return getWorld().getLight(ForgeAdapter.toBlockPos(position));
     }
 
     @Override
-    public boolean clearContainerBlockContents(BlockVector3d position) {
+    public boolean clearContainerBlockContents(BlockVector3 position) {
         checkNotNull(position);
         TileEntity tile = getWorld().getTileEntity(ForgeAdapter.toBlockPos(position));
         if ((tile instanceof IInventory)) {
@@ -257,13 +257,13 @@ public class ForgeWorld extends AbstractWorld {
     }
 
     @Override
-    public BaseBiome getBiome(BlockVector2d position) {
+    public BaseBiome getBiome(BlockVector2 position) {
         checkNotNull(position);
         return new BaseBiome(Biome.getIdForBiome(getWorld().getBiomeForCoordsBody(new BlockPos(position.getBlockX(), 0, position.getBlockZ()))));
     }
 
     @Override
-    public boolean setBiome(BlockVector2d position, BaseBiome biome) {
+    public boolean setBiome(BlockVector2 position, BaseBiome biome) {
         checkNotNull(position);
         checkNotNull(biome);
 
@@ -277,7 +277,7 @@ public class ForgeWorld extends AbstractWorld {
     }
 
     @Override
-    public boolean useItem(BlockVector3d position, BaseItem item, Direction face) {
+    public boolean useItem(BlockVector3 position, BaseItem item, Direction face) {
         Item nativeItem = Item.getByNameOrId(item.getType().getId());
         ItemStack stack = null;
         if (item.getNbtData() == null) {
@@ -292,7 +292,7 @@ public class ForgeWorld extends AbstractWorld {
     }
 
     @Override
-    public void dropItem(Vector3d position, BaseItemStack item) {
+    public void dropItem(Vector3 position, BaseItemStack item) {
         checkNotNull(position);
         checkNotNull(item);
 
@@ -306,7 +306,7 @@ public class ForgeWorld extends AbstractWorld {
     }
 
     @Override
-    public void simulateBlockMine(BlockVector3d position) {
+    public void simulateBlockMine(BlockVector3 position) {
         BlockPos pos = ForgeAdapter.toBlockPos(position);
         IBlockState state = getWorld().getBlockState(pos);
         state.getBlock().dropBlockAsItem(getWorld(), pos, state, 0);
@@ -337,13 +337,13 @@ public class ForgeWorld extends AbstractWorld {
         // Pre-gen all the chunks
         // We need to also pull one more chunk in every direction
         CuboidRegion expandedPreGen = new CuboidRegion(region.getMinimumPoint().subtract(16, 0, 16), region.getMaximumPoint().add(16, 0, 16));
-        for (BlockVector2d chunk : expandedPreGen.getChunks()) {
+        for (BlockVector2 chunk : expandedPreGen.getChunks()) {
             freshWorld.getChunkFromChunkCoords(chunk.getBlockX(), chunk.getBlockZ());
         }
         
         ForgeWorld from = new ForgeWorld(freshWorld);
         try {
-            for (BlockVector3d vec : region) {
+            for (BlockVector3 vec : region) {
                 editSession.setBlock(vec, from.getFullBlock(vec));
             }
         } catch (MaxChangedBlocksException e) {
@@ -385,31 +385,31 @@ public class ForgeWorld extends AbstractWorld {
     }
 
     @Override
-    public boolean generateTree(TreeType type, EditSession editSession, BlockVector3d position) throws MaxChangedBlocksException {
+    public boolean generateTree(TreeType type, EditSession editSession, BlockVector3 position) throws MaxChangedBlocksException {
         WorldGenerator generator = createWorldGenerator(type);
         return generator != null && generator.generate(getWorld(), random, ForgeAdapter.toBlockPos(position));
     }
 
     @Override
-    public void checkLoadedChunk(BlockVector3d pt) {
+    public void checkLoadedChunk(BlockVector3 pt) {
         getWorld().getChunkFromBlockCoords(ForgeAdapter.toBlockPos(pt));
     }
 
     @Override
-    public void fixAfterFastMode(Iterable<BlockVector2d> chunks) {
+    public void fixAfterFastMode(Iterable<BlockVector2> chunks) {
         fixLighting(chunks);
     }
 
     @Override
-    public void fixLighting(Iterable<BlockVector2d> chunks) {
+    public void fixLighting(Iterable<BlockVector2> chunks) {
         World world = getWorld();
-        for (BlockVector2d chunk : chunks) {
+        for (BlockVector2 chunk : chunks) {
             world.getChunkFromChunkCoords(chunk.getBlockX(), chunk.getBlockZ()).resetRelightChecks();
         }
     }
 
     @Override
-    public boolean playEffect(Vector3d position, int type, int data) {
+    public boolean playEffect(Vector3 position, int type, int data) {
         getWorld().playEvent(type, ForgeAdapter.toBlockPos(position.toBlockPoint()), data);
         return true;
     }
@@ -462,7 +462,7 @@ public class ForgeWorld extends AbstractWorld {
     }
 
     @Override
-    public BlockState getBlock(BlockVector3d position) {
+    public BlockState getBlock(BlockVector3 position) {
         World world = getWorld();
         BlockPos pos = new BlockPos(position.getBlockX(), position.getBlockY(), position.getBlockZ());
         IBlockState mcState = world.getBlockState(pos);
@@ -486,7 +486,7 @@ public class ForgeWorld extends AbstractWorld {
     }
 
     @Override
-    public BaseBlock getFullBlock(BlockVector3d position) {
+    public BaseBlock getFullBlock(BlockVector3 position) {
         BlockPos pos = new BlockPos(position.getBlockX(), position.getBlockY(), position.getBlockZ());
         TileEntity tile = getWorld().getTileEntity(pos);
 
@@ -522,7 +522,7 @@ public class ForgeWorld extends AbstractWorld {
     public List<? extends Entity> getEntities(Region region) {
         List<Entity> entities = new ArrayList<>();
         for (net.minecraft.entity.Entity entity : getWorld().loadedEntityList) {
-            if (region.contains(new BlockVector3d(entity.posX, entity.posY, entity.posZ))) {
+            if (region.contains(new BlockVector3(entity.posX, entity.posY, entity.posZ))) {
                 entities.add(new ForgeEntity(entity));
             }
         }

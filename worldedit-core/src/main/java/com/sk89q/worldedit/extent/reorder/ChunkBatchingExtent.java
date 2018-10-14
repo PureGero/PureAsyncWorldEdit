@@ -25,8 +25,8 @@ import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.RunContext;
 import com.sk89q.worldedit.function.operation.SetLocatedBlocks;
-import com.sk89q.worldedit.math.BlockVector2d;
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector2;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.util.collection.LocatedBlockList;
 import com.sk89q.worldedit.world.block.BlockStateHolder;
 
@@ -48,11 +48,11 @@ public class ChunkBatchingExtent extends AbstractDelegateExtent {
      * Comparator optimized for sorting chunks by the region file they reside
      * in. This allows for file caches to be used while loading the chunk.
      */
-    private static final Comparator<BlockVector2d> REGION_OPTIMIZED_SORT =
-            Comparator.comparing((BlockVector2d vec) -> vec.divide(32), BlockVector2d.COMPARING_GRID_ARRANGEMENT)
-                    .thenComparing(BlockVector2d.COMPARING_GRID_ARRANGEMENT);
+    private static final Comparator<BlockVector2> REGION_OPTIMIZED_SORT =
+            Comparator.comparing((BlockVector2 vec) -> vec.divide(32), BlockVector2.COMPARING_GRID_ARRANGEMENT)
+                    .thenComparing(BlockVector2.COMPARING_GRID_ARRANGEMENT);
 
-    private final SortedMap<BlockVector2d, LocatedBlockList> batches = new TreeMap<>(REGION_OPTIMIZED_SORT);
+    private final SortedMap<BlockVector2, LocatedBlockList> batches = new TreeMap<>(REGION_OPTIMIZED_SORT);
     private boolean enabled;
 
     public ChunkBatchingExtent(Extent extent) {
@@ -73,11 +73,11 @@ public class ChunkBatchingExtent extends AbstractDelegateExtent {
     }
 
     @Override
-    public boolean setBlock(BlockVector3d location, BlockStateHolder block) throws WorldEditException {
+    public boolean setBlock(BlockVector3 location, BlockStateHolder block) throws WorldEditException {
         if (!enabled) {
             return getExtent().setBlock(location, block);
         }
-        BlockVector2d chunkPos = new BlockVector2d(location.getBlockX() >> 4, location.getBlockZ() >> 4);
+        BlockVector2 chunkPos = new BlockVector2(location.getBlockX() >> 4, location.getBlockZ() >> 4);
         batches.computeIfAbsent(chunkPos, k -> new LocatedBlockList()).add(location, block);
         return true;
     }

@@ -19,14 +19,15 @@
 
 package com.sk89q.worldedit.sponge;
 
+import com.flowpowered.math.vector.Vector3d;
 import com.sk89q.util.StringUtil;
 import com.sk89q.worldedit.blocks.BaseItemStack;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.extension.platform.AbstractPlayerActor;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
 import com.sk89q.worldedit.internal.cui.CUIEvent;
-import com.sk89q.worldedit.math.BlockVector3d;
-import com.sk89q.worldedit.math.Vector3d;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.math.Vector3;
 import com.sk89q.worldedit.session.SessionKey;
 import com.sk89q.worldedit.util.HandSide;
 import com.sk89q.worldedit.util.Location;
@@ -86,7 +87,7 @@ public class SpongePlayer extends AbstractPlayerActor {
     @Override
     public Location getLocation() {
         org.spongepowered.api.world.Location<World> entityLoc = this.player.getLocation();
-        com.flowpowered.math.vector.Vector3d entityRot = this.player.getRotation();
+        Vector3d entityRot = this.player.getRotation();
 
         return SpongeWorldEdit.inst().getAdapter().adapt(entityLoc, entityRot);
     }
@@ -145,12 +146,12 @@ public class SpongePlayer extends AbstractPlayerActor {
     }
 
     @Override
-    public void setPosition(Vector3d pos, float pitch, float yaw) {
+    public void setPosition(Vector3 pos, float pitch, float yaw) {
         org.spongepowered.api.world.Location<World> loc = new org.spongepowered.api.world.Location<>(
                 this.player.getWorld(), pos.getX(), pos.getY(), pos.getZ()
         );
 
-        this.player.setLocationAndRotation(loc, new com.flowpowered.math.vector.Vector3d(pitch, yaw, 0));
+        this.player.setLocationAndRotation(loc, new Vector3d(pitch, yaw, 0));
     }
 
     @Override
@@ -186,7 +187,7 @@ public class SpongePlayer extends AbstractPlayerActor {
     }
 
     @Override
-    public void sendFakeBlock(BlockVector3d pos, BlockStateHolder block) {
+    public void sendFakeBlock(BlockVector3 pos, BlockStateHolder block) {
         org.spongepowered.api.world.Location<World> loc = player.getWorld().getLocation(pos.getX(), pos.getY(), pos.getZ());
         if (block == null) {
             player.sendBlockChange(loc.getBlockPosition(), loc.getBlock());

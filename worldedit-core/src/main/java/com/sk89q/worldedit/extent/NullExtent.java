@@ -23,8 +23,8 @@ import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.function.operation.Operation;
-import com.sk89q.worldedit.math.BlockVector2d;
-import com.sk89q.worldedit.math.BlockVector3d;
+import com.sk89q.worldedit.math.BlockVector2;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.biome.BaseBiome;
@@ -45,13 +45,13 @@ import javax.annotation.Nullable;
 public class NullExtent implements Extent {
 
     @Override
-    public BlockVector3d getMinimumPoint() {
-        return BlockVector3d.ZERO;
+    public BlockVector3 getMinimumPoint() {
+        return BlockVector3.ZERO;
     }
 
     @Override
-    public BlockVector3d getMaximumPoint() {
-        return BlockVector3d.ZERO;
+    public BlockVector3 getMaximumPoint() {
+        return BlockVector3.ZERO;
     }
 
     @Override
@@ -71,28 +71,28 @@ public class NullExtent implements Extent {
     }
 
     @Override
-    public BlockState getBlock(BlockVector3d position) {
+    public BlockState getBlock(BlockVector3 position) {
         return BlockTypes.AIR.getDefaultState();
     }
 
     @Override
-    public BaseBlock getFullBlock(BlockVector3d position) {
+    public BaseBlock getFullBlock(BlockVector3 position) {
         return getBlock(position).toBaseBlock();
     }
 
     @Nullable
     @Override
-    public BaseBiome getBiome(BlockVector2d position) {
+    public BaseBiome getBiome(BlockVector2 position) {
         return null;
     }
 
     @Override
-    public boolean setBlock(BlockVector3d position, BlockStateHolder block) throws WorldEditException {
+    public boolean setBlock(BlockVector3 position, BlockStateHolder block) throws WorldEditException {
         return false;
     }
 
     @Override
-    public boolean setBiome(BlockVector2d position, BaseBiome biome) {
+    public boolean setBiome(BlockVector2 position, BaseBiome biome) {
         return false;
     }
 

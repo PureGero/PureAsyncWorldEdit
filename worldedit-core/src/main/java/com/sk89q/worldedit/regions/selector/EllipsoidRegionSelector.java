@@ -27,8 +27,8 @@ import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.internal.cui.CUIRegion;
 import com.sk89q.worldedit.internal.cui.SelectionEllipsoidPointEvent;
 import com.sk89q.worldedit.internal.cui.SelectionPointEvent;
-import com.sk89q.worldedit.math.BlockVector3d;
-import com.sk89q.worldedit.math.Vector3d;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.math.Vector3;
 import com.sk89q.worldedit.regions.EllipsoidRegion;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionSelector;
@@ -61,7 +61,7 @@ public class EllipsoidRegionSelector implements RegionSelector, CUIRegion {
      * @param world the world, which may be {@code null}
      */
     public EllipsoidRegionSelector(@Nullable World world) {
-        region = new EllipsoidRegion(world, BlockVector3d.ZERO, Vector3d.ZERO);
+        region = new EllipsoidRegion(world, BlockVector3.ZERO, Vector3.ZERO);
     }
 
     /**
@@ -83,12 +83,12 @@ public class EllipsoidRegionSelector implements RegionSelector, CUIRegion {
                 return;
             }
 
-            BlockVector3d pos1 = oldRegion.getMinimumPoint();
-            BlockVector3d pos2 = oldRegion.getMaximumPoint();
+            BlockVector3 pos1 = oldRegion.getMinimumPoint();
+            BlockVector3 pos2 = oldRegion.getMaximumPoint();
 
-            BlockVector3d center = pos1.add(pos2).divide(2).floor();
+            BlockVector3 center = pos1.add(pos2).divide(2).floor();
             region.setCenter(center);
-            region.setRadius(pos2.subtract(center).toVector3d());
+            region.setRadius(pos2.subtract(center).toVector3());
         }
     }
 
@@ -99,7 +99,7 @@ public class EllipsoidRegionSelector implements RegionSelector, CUIRegion {
      * @param center the center
      * @param radius the radius
      */
-    public EllipsoidRegionSelector(@Nullable World world, BlockVector3d center, Vector3d radius) {
+    public EllipsoidRegionSelector(@Nullable World world, BlockVector3 center, Vector3 radius) {
         this(world);
 
         region.setCenter(center);
@@ -118,32 +118,32 @@ public class EllipsoidRegionSelector implements RegionSelector, CUIRegion {
     }
 
     @Override
-    public boolean selectPrimary(BlockVector3d position, SelectorLimits limits) {
+    public boolean selectPrimary(BlockVector3 position, SelectorLimits limits) {
         if (position.equals(region.getCenter()) && region.getRadius().lengthSq() == 0) {
             return false;
         }
 
         region.setCenter(position);
-        region.setRadius(Vector3d.ZERO);
+        region.setRadius(Vector3.ZERO);
         started = true;
 
         return true;
     }
 
     @Override
-    public boolean selectSecondary(BlockVector3d position, SelectorLimits limits) {
+    public boolean selectSecondary(BlockVector3 position, SelectorLimits limits) {
         if (!started) {
             return false;
         }
 
-        final Vector3d diff = position.toVector3d().subtract(region.getCenter());
-        final Vector3d minRadius = diff.getMaximum(diff.multiply(-1.0));
+        final Vector3 diff = position.toVector3().subtract(region.getCenter());
+        final Vector3 minRadius = diff.getMaximum(diff.multiply(-1.0));
         region.extendRadius(minRadius);
         return true;
     }
 
     @Override
-    public void explainPrimarySelection(Actor player, LocalSession session, BlockVector3d pos) {
+    public void explainPrimarySelection(Actor player, LocalSession session, BlockVector3 pos) {
         if (isDefined()) {
             player.print("Center position set to " + region.getCenter() + " (" + region.getArea() + ").");
         } else {
@@ -154,7 +154,7 @@ public class EllipsoidRegionSelector implements RegionSelector, CUIRegion {
     }
 
     @Override
-    public void explainSecondarySelection(Actor player, LocalSession session, BlockVector3d pos) {
+    public void explainSecondarySelection(Actor player, LocalSession session, BlockVector3 pos) {
         if (isDefined()) {
             player.print("Radius set to " + region.getRadius() + " (" + region.getArea() + ").");
         } else {
@@ -194,8 +194,8 @@ public class EllipsoidRegionSelector implements RegionSelector, CUIRegion {
 
     @Override
     public void clear() {
-        region.setCenter(BlockVector3d.ZERO);
-        region.setRadius(Vector3d.ZERO);
+        region.setCenter(BlockVector3.ZERO);
+        region.setRadius(Vector3.ZERO);
     }
 
     @Override
@@ -207,12 +207,12 @@ public class EllipsoidRegionSelector implements RegionSelector, CUIRegion {
     public List<String> getInformationLines() {
         final List<String> lines = new ArrayList<>();
 
-        final Vector3d center = region.getCenter();
+        final Vector3 center = region.getCenter();
         if (center.lengthSq() > 0) {
             lines.add("Center: " + center);
         }
 
-        final Vector3d radius = region.getRadius();
+        final Vector3 radius = region.getRadius();
         if (radius.lengthSq() > 0) {
             lines.add("X/Y/Z radius: " + radius);
         }
@@ -253,7 +253,7 @@ public class EllipsoidRegionSelector implements RegionSelector, CUIRegion {
     }
 
     @Override
-    public BlockVector3d getPrimaryPosition() throws IncompleteRegionException {
+    public BlockVector3 getPrimaryPosition() throws IncompleteRegionException {
         return region.getCenter().toBlockPoint();
     }
 

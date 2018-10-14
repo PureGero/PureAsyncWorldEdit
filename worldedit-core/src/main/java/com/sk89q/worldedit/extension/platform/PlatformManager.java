@@ -37,8 +37,8 @@ import com.sk89q.worldedit.event.platform.PlatformInitializeEvent;
 import com.sk89q.worldedit.event.platform.PlatformReadyEvent;
 import com.sk89q.worldedit.event.platform.PlayerInputEvent;
 import com.sk89q.worldedit.extension.platform.permission.ActorSelectorLimits;
-import com.sk89q.worldedit.math.BlockVector3d;
-import com.sk89q.worldedit.math.Vector3d;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.math.Vector3;
 import com.sk89q.worldedit.regions.RegionSelector;
 import com.sk89q.worldedit.util.HandSide;
 import com.sk89q.worldedit.util.Location;
@@ -303,7 +303,7 @@ public class PlatformManager {
         Actor actor = createProxyActor(event.getCause());
 
         Location location = event.getLocation();
-        Vector3d vector = location.toVector();
+        Vector3 vector = location.toVector();
 
         // At this time, only handle interaction from players
         if (actor instanceof Player) {
@@ -322,7 +322,7 @@ public class PlatformManager {
 
                     RegionSelector selector = session.getRegionSelector(player.getWorld());
 
-                    BlockVector3d blockPoint = vector.toBlockPoint();
+                    BlockVector3 blockPoint = vector.toBlockPoint();
                     if (selector.selectPrimary(blockPoint, ActorSelectorLimits.forActor(player))) {
                         selector.explainPrimarySelection(actor, session, blockPoint);
                     }
@@ -358,7 +358,7 @@ public class PlatformManager {
                     }
 
                     RegionSelector selector = session.getRegionSelector(player.getWorld());
-                    BlockVector3d blockPoint = vector.toBlockPoint();
+                    BlockVector3 blockPoint = vector.toBlockPoint();
                     if (selector.selectSecondary(blockPoint, ActorSelectorLimits.forActor(player))) {
                         selector.explainSecondarySelection(actor, session, blockPoint);
                     }

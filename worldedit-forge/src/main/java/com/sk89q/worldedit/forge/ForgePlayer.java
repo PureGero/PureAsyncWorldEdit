@@ -25,8 +25,8 @@ import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.extension.platform.AbstractPlayerActor;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
 import com.sk89q.worldedit.internal.cui.CUIEvent;
-import com.sk89q.worldedit.math.BlockVector3d;
-import com.sk89q.worldedit.math.Vector3d;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.math.Vector3;
 import com.sk89q.worldedit.session.SessionKey;
 import com.sk89q.worldedit.util.HandSide;
 import com.sk89q.worldedit.util.Location;
@@ -84,7 +84,7 @@ public class ForgePlayer extends AbstractPlayerActor {
 
     @Override
     public Location getLocation() {
-        Vector3d position = new Vector3d(this.player.posX, this.player.posY, this.player.posZ);
+        Vector3 position = new Vector3(this.player.posX, this.player.posY, this.player.posZ);
         return new Location(
                 ForgeWorldEdit.inst.getWorld(this.player.world),
                 position,
@@ -146,7 +146,7 @@ public class ForgePlayer extends AbstractPlayerActor {
     }
 
     @Override
-    public void setPosition(Vector3d pos, float pitch, float yaw) {
+    public void setPosition(Vector3 pos, float pitch, float yaw) {
         this.player.connection.setPlayerLocation(pos.getX(), pos.getY(), pos.getZ(), yaw, pitch);
     }
 
@@ -172,7 +172,7 @@ public class ForgePlayer extends AbstractPlayerActor {
     }
 
     @Override
-    public void sendFakeBlock(BlockVector3d pos, BlockStateHolder block) {
+    public void sendFakeBlock(BlockVector3 pos, BlockStateHolder block) {
         BlockPos loc = ForgeAdapter.toBlockPos(pos);
         if (block == null) {
             // TODO

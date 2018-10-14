@@ -22,7 +22,7 @@ package com.sk89q.worldedit.util;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.sk89q.worldedit.extent.Extent;
-import com.sk89q.worldedit.math.Vector3d;
+import com.sk89q.worldedit.math.Vector3;
 
 /**
  * Represents a location in a world with has a direction.
@@ -37,7 +37,7 @@ import com.sk89q.worldedit.math.Vector3d;
 public class Location {
 
     private final Extent extent;
-    private final Vector3d position;
+    private final Vector3 position;
     private final float pitch;
     private final float yaw;
 
@@ -48,7 +48,7 @@ public class Location {
      * @param extent the extent
      */
     public Location(Extent extent) {
-        this(extent, Vector3d.ZERO, Vector3d.ZERO);
+        this(extent, Vector3.ZERO, Vector3.ZERO);
     }
 
     /**
@@ -61,7 +61,7 @@ public class Location {
      * @param z the Z coordinate
      */
     public Location(Extent extent, double x, double y, double z) {
-        this(extent, new Vector3d(x, y, z), Vector3d.ZERO);
+        this(extent, new Vector3(x, y, z), Vector3.ZERO);
     }
 
     /**
@@ -71,8 +71,8 @@ public class Location {
      * @param extent the extent
      * @param position the position vector
      */
-    public Location(Extent extent, Vector3d position) {
-        this(extent, position, Vector3d.ZERO);
+    public Location(Extent extent, Vector3 position) {
+        this(extent, position, Vector3.ZERO);
     }
 
     /**
@@ -85,8 +85,8 @@ public class Location {
      * @param z the Z coordinate
      * @param direction the direction vector
      */
-    public Location(Extent extent, double x, double y, double z, Vector3d direction) {
-        this(extent, new Vector3d(x, y, z), direction);
+    public Location(Extent extent, double x, double y, double z, Vector3 direction) {
+        this(extent, new Vector3(x, y, z), direction);
     }
 
     /**
@@ -101,7 +101,7 @@ public class Location {
      * @param pitch the pitch, in degrees
      */
     public Location(Extent extent, double x, double y, double z, float yaw, float pitch) {
-        this(extent, new Vector3d(x, y, z), yaw, pitch);
+        this(extent, new Vector3(x, y, z), yaw, pitch);
     }
 
     /**
@@ -112,7 +112,7 @@ public class Location {
      * @param position the position vector
      * @param direction the direction vector
      */
-    public Location(Extent extent, Vector3d position, Vector3d direction) {
+    public Location(Extent extent, Vector3 position, Vector3 direction) {
         this(extent, position, (float) direction.toYaw(), (float) direction.toPitch());
     }
 
@@ -125,7 +125,7 @@ public class Location {
      * @param yaw the yaw, in degrees
      * @param pitch the pitch, in degrees
      */
-    public Location(Extent extent, Vector3d position, float yaw, float pitch) {
+    public Location(Extent extent, Vector3 position, float yaw, float pitch) {
         checkNotNull(extent);
         checkNotNull(position);
         this.extent = extent;
@@ -207,11 +207,11 @@ public class Location {
      *
      * @return the direction vector
      */
-    public Vector3d getDirection() {
+    public Vector3 getDirection() {
         double yaw = Math.toRadians(this.getYaw());
         double pitch = Math.toRadians(this.getPitch());
         double xz = Math.cos(pitch);
-        return new Vector3d(
+        return new Vector3(
                 -xz * Math.sin(yaw),
                 -Math.sin(pitch),
                 xz * Math.cos(yaw));
@@ -232,16 +232,16 @@ public class Location {
      * @param direction the new direction
      * @return the new instance
      */
-    public Location setDirection(Vector3d direction) {
+    public Location setDirection(Vector3 direction) {
         return new Location(extent, position, (float) direction.toYaw(), (float) direction.toPitch());
     }
 
     /**
-     * Get a {@link Vector3d} form of this location's position.
+     * Get a {@link Vector3} form of this location's position.
      *
      * @return a vector
      */
-    public Vector3d toVector() {
+    public Vector3 toVector() {
         return position;
     }
 
@@ -338,7 +338,7 @@ public class Location {
      * @param position The new position
      * @return a new immutable instance
      */
-    public Location setPosition(Vector3d position) {
+    public Location setPosition(Vector3 position) {
         return new Location(extent, position, yaw, pitch);
     }
 

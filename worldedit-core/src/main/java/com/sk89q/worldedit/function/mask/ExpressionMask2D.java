@@ -24,7 +24,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.sk89q.worldedit.internal.expression.Expression;
 import com.sk89q.worldedit.internal.expression.ExpressionException;
 import com.sk89q.worldedit.internal.expression.runtime.EvaluationException;
-import com.sk89q.worldedit.math.BlockVector2d;
+import com.sk89q.worldedit.math.BlockVector2;
 
 public class ExpressionMask2D extends AbstractMask2D {
 
@@ -52,7 +52,7 @@ public class ExpressionMask2D extends AbstractMask2D {
     }
 
     @Override
-    public boolean test(BlockVector2d vector) {
+    public boolean test(BlockVector2 vector) {
         try {
             return expression.evaluate(vector.getX(), 0, vector.getZ()) > 0;
         } catch (EvaluationException e) {

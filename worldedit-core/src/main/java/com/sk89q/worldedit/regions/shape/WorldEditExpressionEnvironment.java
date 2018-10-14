@@ -21,28 +21,28 @@ package com.sk89q.worldedit.regions.shape;
 
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.internal.expression.runtime.ExpressionEnvironment;
-import com.sk89q.worldedit.math.BlockVector3d;
-import com.sk89q.worldedit.math.Vector3d;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.math.Vector3;
 
 public class WorldEditExpressionEnvironment implements ExpressionEnvironment {
 
-    private final Vector3d unit;
-    private final Vector3d zero2;
-    private Vector3d current = Vector3d.ZERO;
+    private final Vector3 unit;
+    private final Vector3 zero2;
+    private Vector3 current = Vector3.ZERO;
     private EditSession editSession;
 
-    public WorldEditExpressionEnvironment(EditSession editSession, Vector3d unit, Vector3d zero) {
+    public WorldEditExpressionEnvironment(EditSession editSession, Vector3 unit, Vector3 zero) {
         this.editSession = editSession;
         this.unit = unit;
         this.zero2 = zero.add(0.5, 0.5, 0.5);
     }
 
-    public BlockVector3d toWorld(double x, double y, double z) {
+    public BlockVector3 toWorld(double x, double y, double z) {
         // unscale, unoffset, round-nearest
-        return new Vector3d(x, y, z).multiply(unit).add(zero2).toBlockPoint();
+        return new Vector3(x, y, z).multiply(unit).add(zero2).toBlockPoint();
     }
 
-    public Vector3d toWorldRel(double x, double y, double z) {
+    public Vector3 toWorldRel(double x, double y, double z) {
         return current.add(x, y, z);
     }
 
@@ -76,7 +76,7 @@ public class WorldEditExpressionEnvironment implements ExpressionEnvironment {
         return 0;
     }
 
-    public void setCurrentBlock(Vector3d current) {
+    public void setCurrentBlock(Vector3 current) {
         this.current = current;
     }
 
