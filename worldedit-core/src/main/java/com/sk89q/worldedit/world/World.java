@@ -32,6 +32,7 @@ import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.Direction;
 import com.sk89q.worldedit.util.TreeGenerator;
+import com.sk89q.worldedit.world.block.BlockState;
 import com.sk89q.worldedit.world.block.BlockStateHolder;
 import com.sk89q.worldedit.world.block.BlockType;
 import com.sk89q.worldedit.world.weather.WeatherType;
@@ -93,6 +94,16 @@ public interface World extends Extent {
      * @return true if the block was successfully set (return value may not be accurate)
      */
     boolean setBlock(Vector position, BlockStateHolder block, boolean notifyAndLight) throws WorldEditException;
+
+    /**
+     * Notifies the simulation that the block at the given location has
+     * been changed and it must be re-lighted (and issue other events).
+     *
+     * @param position position of the block
+     * @param previousType the type of the previous block that was there
+     * @return true if the block was successfully notified
+     */
+    boolean notifyAndLightBlock(Vector position, BlockState previousType) throws WorldEditException;
 
     /**
      * Get the light level at the given block.

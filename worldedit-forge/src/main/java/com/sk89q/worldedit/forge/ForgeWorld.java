@@ -213,6 +213,12 @@ public class ForgeWorld extends AbstractWorld {
         return successful;
     }
 
+    @Override
+    public boolean notifyAndLightBlock(Vector position, BlockState previousType) throws WorldEditException {
+        // TODO Implement
+        return false;
+    }
+
     // Can't get the "Object" to be right for withProperty w/o this
     @SuppressWarnings({ "rawtypes", "unchecked" })
     private IBlockState applyProperties(BlockStateContainer stateContainer, IBlockState newState, Map<Property<?>, Object> states) {

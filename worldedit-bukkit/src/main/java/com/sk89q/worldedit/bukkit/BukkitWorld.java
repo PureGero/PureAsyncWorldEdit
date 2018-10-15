@@ -438,6 +438,17 @@ public class BukkitWorld extends AbstractWorld {
     }
 
     @Override
+    public boolean notifyAndLightBlock(Vector position, com.sk89q.worldedit.world.block.BlockState previousType) throws WorldEditException {
+        BukkitImplAdapter adapter = WorldEditPlugin.getInstance().getBukkitImplAdapter();
+        if (adapter != null) {
+            adapter.notifyAndLightBlock(BukkitAdapter.adapt(getWorld(), position), previousType);
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
     public BaseBlock getFullBlock(Vector position) {
         BukkitImplAdapter adapter = WorldEditPlugin.getInstance().getBukkitImplAdapter();
         if (adapter != null) {

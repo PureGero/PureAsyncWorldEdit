@@ -162,6 +162,12 @@ public abstract class SpongeWorld extends AbstractWorld {
     }
 
     @Override
+    public boolean notifyAndLightBlock(Vector position, com.sk89q.worldedit.world.block.BlockState previousType) throws WorldEditException {
+        // TODO Move this to adapter
+        return false;
+    }
+
+    @Override
     public boolean regenerate(Region region, EditSession editSession) {
         return false;
     }
