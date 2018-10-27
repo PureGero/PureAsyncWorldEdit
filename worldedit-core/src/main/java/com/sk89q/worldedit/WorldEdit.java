@@ -91,7 +91,7 @@ public class WorldEdit {
     public static final Logger logger = Logger.getLogger(WorldEdit.class.getCanonicalName());
 
     private final static WorldEdit instance = new WorldEdit();
-    private static String version;
+    private static String version = "PureAsyncWorldEdit";
 
     private final EventBus eventBus = new EventBus();
     private final PlatformManager platformManager = new PlatformManager(this);

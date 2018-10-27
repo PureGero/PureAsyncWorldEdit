@@ -56,7 +56,7 @@ public class WorldEditCommands {
     )
     public void version(Actor actor) throws WorldEditException {
         actor.print("WorldEdit version " + WorldEdit.getVersion());
-        actor.print("https://github.com/sk89q/worldedit/");
+        actor.print("https://github.com/PureGero/PureAsyncWorldEdit");
 
         PlatformManager pm = we.getPlatformManager();
 
