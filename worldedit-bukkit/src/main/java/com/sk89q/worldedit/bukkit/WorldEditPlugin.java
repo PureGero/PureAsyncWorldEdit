@@ -104,6 +104,13 @@ public class WorldEditPlugin extends JavaPlugin implements TabCompleter {
         // platforms to be worried about... at the current time of writing
         WorldEdit.getInstance().getEventBus().post(new PlatformReadyEvent());
 
+        // Do the block queue every tick
+        getServer().getScheduler().runTaskTimer(this, new Runnable() {
+            public void run() {
+                WorldEdit.getInstance().getBlockQueueManager().doTick();
+            }
+        }, 1, 1);
+        
         // Enable metrics
         new Metrics(this);
     }

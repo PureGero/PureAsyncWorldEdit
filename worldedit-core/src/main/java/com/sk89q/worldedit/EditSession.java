@@ -151,6 +151,7 @@ public class EditSession implements Extent, AutoCloseable {
     @SuppressWarnings("ProtectedField")
     protected final World world;
     private final ChangeSet changeSet = new BlockOptimizedHistory();
+    private BlockQueue blockQueueExtent = null;
 
     private @Nullable FastModeExtent fastModeExtent;
     private final SurvivalModeExtent survivalExtent;
@@ -199,6 +200,7 @@ public class EditSession implements Extent, AutoCloseable {
             extent = wrapExtent(extent, eventBus, event, Stage.BEFORE_CHANGE);
             extent = validator = new DataValidatorExtent(extent, world);
             extent = blockBagExtent = new BlockBagExtent(extent, blockBag);
+            extent = blockQueueExtent = new BlockQueue(extent, this);
 
             // This extent can be skipped by calling rawSetBlock()
             extent = reorderExtent = new MultiStageReorder(extent, false);
@@ -547,6 +549,7 @@ public class EditSession implements Extent, AutoCloseable {
     public boolean setBlock(Vector position, BlockStateHolder block) throws MaxChangedBlocksException {
         try {
             return setBlock(position, block, Stage.BEFORE_HISTORY);
+            //return queueBlock(position, block);
         } catch (MaxChangedBlocksException e) {
             throw e;
         } catch (WorldEditException e) {

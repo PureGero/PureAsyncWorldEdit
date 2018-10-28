@@ -97,6 +97,7 @@ public class WorldEdit {
     private final PlatformManager platformManager = new PlatformManager(this);
     private final EditSessionFactory editSessionFactory = new EditSessionFactory.EditSessionFactoryImpl(eventBus);
     private final SessionManager sessions = new SessionManager(this);
+    private final BlockQueueManager blockQueueManager = new BlockQueueManager();
 
     private final BlockFactory blockFactory = new BlockFactory(this);
     private final ItemFactory itemFactory = new ItemFactory(this);
@@ -651,6 +652,10 @@ public class WorldEdit {
      */
     public EditSessionFactory getEditSessionFactory() {
         return editSessionFactory;
+    }
+    
+    public BlockQueueManager getBlockQueueManager() {
+        return blockQueueManager;
     }
 
     /**
