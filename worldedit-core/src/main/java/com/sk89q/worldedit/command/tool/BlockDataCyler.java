@@ -27,6 +27,7 @@ import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extension.platform.Platform;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.registry.state.Property;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.World;
@@ -54,7 +55,8 @@ public class BlockDataCyler implements DoubleActionBlockTool {
 
         World world = (World) clicked.getExtent();
 
-        BlockState block = world.getBlock(clicked.toVector());
+        BlockVector3 blockPoint = clicked.toVector().toBlockPoint();
+        BlockState block = world.getBlock(blockPoint);
 
         if (!config.allowedDataCycleBlocks.isEmpty()
                 && !player.hasPermission("worldedit.override.data-cycler")
@@ -66,7 +68,7 @@ public class BlockDataCyler implements DoubleActionBlockTool {
         if (block.getStates().keySet().isEmpty()) {
             player.printError("That block's data cannot be cycled!");
         } else {
-            Property currentProperty = selectedProperties.get(player.getUniqueId());
+            Property<?> currentProperty = selectedProperties.get(player.getUniqueId());
 
             if (currentProperty == null || (forward && block.getState(currentProperty) == null)) {
                 currentProperty = block.getStates().keySet().stream().findFirst().get();
@@ -77,17 +79,21 @@ public class BlockDataCyler implements DoubleActionBlockTool {
                 block.getState(currentProperty);
                 int index = currentProperty.getValues().indexOf(block.getState(currentProperty));
                 index = (index + 1) % currentProperty.getValues().size();
-                BlockState newBlock = block.with(currentProperty, currentProperty.getValues().get(index));
+                @SuppressWarnings("unchecked")
+                Property<Object> objProp = (Property<Object>) currentProperty;
+                BlockState newBlock = block.with(objProp, currentProperty.getValues().get(index));
 
-                EditSession editSession = session.createEditSession(player);
+                try (EditSession editSession = session.createEditSession(player)) {
+                    editSession.disableBuffering();
 
-                try {
-                    editSession.setBlock(clicked.toVector(), newBlock);
-                    player.print("Value of " + currentProperty.getName() + " is now " + currentProperty.getValues().get(index).toString());
-                } catch (MaxChangedBlocksException e) {
-                    player.printError("Max blocks change limit reached.");
-                } finally {
-                    session.remember(editSession);
+                    try {
+                        editSession.setBlock(blockPoint, newBlock);
+                        player.print("Value of " + currentProperty.getName() + " is now " + currentProperty.getValues().get(index).toString());
+                    } catch (MaxChangedBlocksException e) {
+                        player.printError("Max blocks change limit reached.");
+                    } finally {
+                        session.remember(editSession);
+                    }
                 }
             } else {
                 List<Property<?>> properties = Lists.newArrayList(block.getStates().keySet());

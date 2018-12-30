@@ -40,6 +40,7 @@ import com.sk89q.worldedit.internal.cui.CUIEvent;
 import com.sk89q.worldedit.internal.cui.CUIRegion;
 import com.sk89q.worldedit.internal.cui.SelectionShapeEvent;
 import com.sk89q.worldedit.internal.cui.ServerCUIHandler;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionSelector;
 import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
@@ -91,7 +92,8 @@ public class LocalSession {
     private transient boolean fastMode = false;
     private transient Mask mask;
     private transient TimeZone timezone = TimeZone.getDefault();
-    private transient Vector cuiTemporaryBlock;
+    private transient BlockVector3 cuiTemporaryBlock;
+    private transient EditSession.ReorderMode reorderMode = EditSession.ReorderMode.MULTI_STAGE;
 
     // Saved properties
     private String lastScript;
@@ -224,11 +226,13 @@ public class LocalSession {
         --historyPointer;
         if (historyPointer >= 0) {
             EditSession editSession = history.get(historyPointer);
-            EditSession newEditSession = WorldEdit.getInstance().getEditSessionFactory()
-                    .getEditSession(editSession.getWorld(), -1, newBlockBag, player);
-            newEditSession.enableStandardMode();
-            newEditSession.setFastMode(fastMode);
-            editSession.undo(newEditSession);
+            try (EditSession newEditSession = WorldEdit.getInstance().getEditSessionFactory()
+                    .getEditSession(editSession.getWorld(), -1, newBlockBag, player)) {
+                newEditSession.enableStandardMode();
+                newEditSession.setReorderMode(reorderMode);
+                newEditSession.setFastMode(fastMode);
+                editSession.undo(newEditSession);
+            }
             return editSession;
         } else {
             historyPointer = 0;
@@ -247,11 +251,13 @@ public class LocalSession {
         checkNotNull(player);
         if (historyPointer < history.size()) {
             EditSession editSession = history.get(historyPointer);
-            EditSession newEditSession = WorldEdit.getInstance().getEditSessionFactory()
-                    .getEditSession(editSession.getWorld(), -1, newBlockBag, player);
-            newEditSession.enableStandardMode();
-            newEditSession.setFastMode(fastMode);
-            editSession.redo(newEditSession);
+            try (EditSession newEditSession = WorldEdit.getInstance().getEditSessionFactory()
+                    .getEditSession(editSession.getWorld(), -1, newBlockBag, player)) {
+                newEditSession.enableStandardMode();
+                newEditSession.setReorderMode(reorderMode);
+                newEditSession.setFastMode(fastMode);
+                editSession.redo(newEditSession);
+            }
             ++historyPointer;
             return editSession;
         }
@@ -450,10 +456,10 @@ public class LocalSession {
      * @return the position to use
      * @throws IncompleteRegionException thrown if a region is not fully selected
      */
-    public Vector getPlacementPosition(Player player) throws IncompleteRegionException {
+    public BlockVector3 getPlacementPosition(Player player) throws IncompleteRegionException {
         checkNotNull(player);
         if (!placeAtPos1) {
-            return player.getBlockIn().toVector();
+            return player.getBlockIn().toVector().toBlockPoint();
         }
 
         return selector.getPrimaryPosition();
@@ -651,23 +657,25 @@ public class LocalSession {
             return; // If it's not enabled, ignore this.
         }
 
-        // Remove the old block.
-        if (cuiTemporaryBlock != null) {
-            player.sendFakeBlock(cuiTemporaryBlock, null);
-            cuiTemporaryBlock = null;
-        }
-
         BaseBlock block = ServerCUIHandler.createStructureBlock(player);
         if (block != null) {
             // If it's null, we don't need to do anything. The old was already removed.
             Map<String, Tag> tags = block.getNbtData().getValue();
-            cuiTemporaryBlock = new Vector(
+            BlockVector3 tempCuiTemporaryBlock = BlockVector3.at(
                     ((IntTag) tags.get("x")).getValue(),
                     ((IntTag) tags.get("y")).getValue(),
                     ((IntTag) tags.get("z")).getValue()
             );
-
+            if (cuiTemporaryBlock != null && !tempCuiTemporaryBlock.equals(cuiTemporaryBlock)) {
+                // Update the existing block if it's the same location
+                player.sendFakeBlock(cuiTemporaryBlock, null);
+            }
+            cuiTemporaryBlock = tempCuiTemporaryBlock;
             player.sendFakeBlock(cuiTemporaryBlock, block);
+        } else if (cuiTemporaryBlock != null) {
+            // Remove the old block
+            player.sendFakeBlock(cuiTemporaryBlock, null);
+            cuiTemporaryBlock = null;
         }
     }
 
@@ -707,10 +715,8 @@ public class LocalSession {
     public void dispatchCUISelection(Actor actor) {
         checkNotNull(actor);
 
-        if (!hasCUISupport) {
-            if (useServerCUI) {
-                updateServerCUI(actor);
-            }
+        if (!hasCUISupport && useServerCUI) {
+            updateServerCUI(actor);
             return;
         }
 
@@ -852,6 +858,7 @@ public class LocalSession {
                 .getEditSession(player.isPlayer() ? player.getWorld() : null,
                         getBlockChangeLimit(), blockBag, player);
         editSession.setFastMode(fastMode);
+        editSession.setReorderMode(reorderMode);
         Request.request().setEditSession(editSession);
         editSession.setMask(mask);
 
@@ -874,6 +881,24 @@ public class LocalSession {
      */
     public void setFastMode(boolean fastMode) {
         this.fastMode = fastMode;
+    }
+
+    /**
+     * Gets the reorder mode of the session.
+     *
+     * @return The reorder mode
+     */
+    public EditSession.ReorderMode getReorderMode() {
+        return reorderMode;
+    }
+
+    /**
+     * Sets the reorder mode of the session.
+     *
+     * @param reorderMode The reorder mode
+     */
+    public void setReorderMode(EditSession.ReorderMode reorderMode) {
+        this.reorderMode = reorderMode;
     }
 
     /**

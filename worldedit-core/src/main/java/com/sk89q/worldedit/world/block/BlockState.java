@@ -30,7 +30,6 @@ import com.sk89q.worldedit.registry.state.Property;
 
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -46,39 +45,25 @@ public class BlockState implements BlockStateHolder<BlockState> {
 
     private final BlockType blockType;
     private final Map<Property<?>, Object> values;
-    private final boolean fuzzy;
 
     private BaseBlock emptyBaseBlock;
 
     // Neighbouring state table.
     private Table<Property<?>, Object, BlockState> states;
 
-    private BlockState(BlockType blockType) {
+    BlockState(BlockType blockType) {
         this.blockType = blockType;
         this.values = new LinkedHashMap<>();
         this.emptyBaseBlock = new BaseBlock(this);
-        this.fuzzy = false;
-    }
-
-    /**
-     * Creates a fuzzy BlockState. This can be used for partial matching.
-     *
-     * @param blockType The block type
-     * @param values The block state values
-     */
-    private BlockState(BlockType blockType, Map<Property<?>, Object> values) {
-        this.blockType = blockType;
-        this.values = values;
-        this.fuzzy = true;
     }
 
     static Map<Map<Property<?>, Object>, BlockState> generateStateMap(BlockType blockType) {
         Map<Map<Property<?>, Object>, BlockState> stateMap = new LinkedHashMap<>();
-        List<? extends Property> properties = blockType.getProperties();
+        List<? extends Property<?>> properties = blockType.getProperties();
 
         if (!properties.isEmpty()) {
             List<List<Object>> separatedValues = Lists.newArrayList();
-            for (Property prop : properties) {
+            for (Property<?> prop : properties) {
                 List<Object> vals = Lists.newArrayList();
                 vals.addAll(prop.getValues());
                 separatedValues.add(vals);
@@ -113,7 +98,7 @@ public class BlockState implements BlockStateHolder<BlockState> {
         final Table<Property<?>, Object, BlockState> states = HashBasedTable.create();
 
         for(final Map.Entry<Property<?>, Object> entry : this.values.entrySet()) {
-            final Property property = entry.getKey();
+            final Property<Object> property = (Property<Object>) entry.getKey();
 
             property.getValues().forEach(value -> {
                 if(value != entry.getValue()) {
@@ -144,12 +129,8 @@ public class BlockState implements BlockStateHolder<BlockState> {
 
     @Override
     public <V> BlockState with(final Property<V> property, final V value) {
-        if (fuzzy) {
-            return setState(property, value);
-        } else {
-            BlockState result = states.get(property, value);
-            return result == null ? this : result;
-        }
+        BlockState result = states.get(property, value);
+        return result == null ? this : result;
     }
 
     @Override
@@ -162,12 +143,8 @@ public class BlockState implements BlockStateHolder<BlockState> {
         return Collections.unmodifiableMap(this.values);
     }
 
-    public BlockState toFuzzy() {
-        return new BlockState(this.getBlockType(), new HashMap<>());
-    }
-
     @Override
-    public boolean equalsFuzzy(BlockStateHolder o) {
+    public boolean equalsFuzzy(BlockStateHolder<?> o) {
         if (this == o) {
             // Added a reference equality check for
             return true;
@@ -176,19 +153,19 @@ public class BlockState implements BlockStateHolder<BlockState> {
             return false;
         }
 
-        Set<Property> differingProperties = new HashSet<>();
+        Set<Property<?>> differingProperties = new HashSet<>();
         for (Object state : o.getStates().keySet()) {
-            if (getState((Property) state) == null) {
-                differingProperties.add((Property) state);
+            if (getState((Property<?>) state) == null) {
+                differingProperties.add((Property<?>) state);
             }
         }
-        for (Property property : getStates().keySet()) {
+        for (Property<?> property : getStates().keySet()) {
             if (o.getState(property) == null) {
                 differingProperties.add(property);
             }
         }
 
-        for (Property property : getStates().keySet()) {
+        for (Property<?> property : getStates().keySet()) {
             if (differingProperties.contains(property)) {
                 continue;
             }
@@ -207,9 +184,6 @@ public class BlockState implements BlockStateHolder<BlockState> {
 
     @Override
     public BaseBlock toBaseBlock() {
-        if (this.fuzzy) {
-            throw new IllegalArgumentException("Can't create a BaseBlock from a fuzzy BlockState!");
-        }
         return this.emptyBaseBlock;
     }
 
@@ -230,7 +204,7 @@ public class BlockState implements BlockStateHolder<BlockState> {
      * @param value The value
      * @return The blockstate, for chaining
      */
-    private BlockState setState(final Property<?> property, final Object value) {
+    BlockState setState(final Property<?> property, final Object value) {
         this.values.put(property, value);
         return this;
     }
@@ -251,6 +225,6 @@ public class BlockState implements BlockStateHolder<BlockState> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(blockType, values, fuzzy);
+        return Objects.hash(blockType, values);
     }
 }
