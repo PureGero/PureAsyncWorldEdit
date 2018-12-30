@@ -29,7 +29,7 @@ import java.util.Comparator;
 /**
  * An immutable 3-dimensional vector.
  */
-public final class BlockVector3 {
+public class BlockVector3 {
 
     public static final BlockVector3 ZERO = new BlockVector3(0, 0, 0);
     public static final BlockVector3 UNIT_X = new BlockVector3(1, 0, 0);
@@ -89,7 +89,7 @@ public final class BlockVector3 {
      * @param y the Y coordinate
      * @param z the Z coordinate
      */
-    private BlockVector3(int x, int y, int z) {
+    protected BlockVector3(int x, int y, int z) {
         this.x = x;
         this.y = y;
         this.z = z;
