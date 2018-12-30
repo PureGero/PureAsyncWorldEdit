@@ -19,10 +19,10 @@
 
 package com.sk89q.worldedit.extent.inventory;
 
-import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.extent.AbstractDelegateExtent;
 import com.sk89q.worldedit.extent.Extent;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.world.block.BlockState;
 import com.sk89q.worldedit.world.block.BlockStateHolder;
 import com.sk89q.worldedit.world.block.BlockType;
@@ -82,29 +82,31 @@ public class BlockBagExtent extends AbstractDelegateExtent {
     }
 
     @Override
-    public boolean setBlock(Vector position, BlockStateHolder block) throws WorldEditException {
+    public <B extends BlockStateHolder<B>> boolean setBlock(BlockVector3 position, B block) throws WorldEditException {
         if (blockBag != null) {
             BlockState existing = getExtent().getBlock(position);
 
-            if (!block.getBlockType().getMaterial().isAir()) {
-                try {
-                    blockBag.fetchPlacedBlock(block.toImmutableState());
-                } catch (UnplaceableBlockException e) {
-                    return false;
-                } catch (BlockBagException e) {
-                    if (!missingBlocks.containsKey(block.getBlockType())) {
-                        missingBlocks.put(block.getBlockType(), 1);
-                    } else {
-                        missingBlocks.put(block.getBlockType(), missingBlocks.get(block.getBlockType()) + 1);
+            if (!block.getBlockType().equals(existing.getBlockType())) {
+                if (!block.getBlockType().getMaterial().isAir()) {
+                    try {
+                        blockBag.fetchPlacedBlock(block.toImmutableState());
+                    } catch (UnplaceableBlockException e) {
+                        return false;
+                    } catch (BlockBagException e) {
+                        if (!missingBlocks.containsKey(block.getBlockType())) {
+                            missingBlocks.put(block.getBlockType(), 1);
+                        } else {
+                            missingBlocks.put(block.getBlockType(), missingBlocks.get(block.getBlockType()) + 1);
+                        }
+                        return false;
                     }
-                    return false;
                 }
-            }
 
-            if (!existing.getBlockType().getMaterial().isAir()) {
-                try {
-                    blockBag.storeDroppedBlock(existing);
-                } catch (BlockBagException ignored) {
+                if (!existing.getBlockType().getMaterial().isAir()) {
+                    try {
+                        blockBag.storeDroppedBlock(existing);
+                    } catch (BlockBagException ignored) {
+                    }
                 }
             }
         }

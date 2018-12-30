@@ -21,7 +21,7 @@ package com.sk89q.worldedit.function.pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.world.block.BaseBlock;
 import com.sk89q.worldedit.world.block.BlockStateHolder;
 
@@ -30,14 +30,14 @@ import com.sk89q.worldedit.world.block.BlockStateHolder;
  */
 public class BlockPattern extends AbstractPattern {
 
-    private BlockStateHolder block;
+    private BaseBlock block;
 
     /**
      * Create a new pattern with the given block.
      *
      * @param block the block
      */
-    public BlockPattern(BlockStateHolder block) {
+    public BlockPattern(BlockStateHolder<?> block) {
         setBlock(block);
     }
 
@@ -46,7 +46,7 @@ public class BlockPattern extends AbstractPattern {
      *
      * @return the block that is always returned
      */
-    public BlockStateHolder getBlock() {
+    public BaseBlock getBlock() {
         return block;
     }
 
@@ -55,13 +55,13 @@ public class BlockPattern extends AbstractPattern {
      *
      * @param block the block
      */
-    public void setBlock(BlockStateHolder block) {
+    public void setBlock(BlockStateHolder<?> block) {
         checkNotNull(block);
-        this.block = block;
+        this.block = block.toBaseBlock();
     }
 
     @Override
-    public BlockStateHolder apply(Vector position) {
+    public BaseBlock apply(BlockVector3 position) {
         return block;
     }
 

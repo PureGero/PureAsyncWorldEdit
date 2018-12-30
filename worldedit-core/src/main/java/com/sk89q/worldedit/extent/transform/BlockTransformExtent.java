@@ -22,16 +22,18 @@ package com.sk89q.worldedit.extent.transform;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.Sets;
-import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
-import com.sk89q.worldedit.registry.state.BooleanProperty;
-import com.sk89q.worldedit.world.block.BaseBlock;
 import com.sk89q.worldedit.extent.AbstractDelegateExtent;
 import com.sk89q.worldedit.extent.Extent;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.math.Vector3;
 import com.sk89q.worldedit.math.transform.Transform;
+import com.sk89q.worldedit.registry.state.BooleanProperty;
 import com.sk89q.worldedit.registry.state.DirectionalProperty;
+import com.sk89q.worldedit.registry.state.EnumProperty;
 import com.sk89q.worldedit.registry.state.Property;
 import com.sk89q.worldedit.util.Direction;
+import com.sk89q.worldedit.world.block.BaseBlock;
 import com.sk89q.worldedit.world.block.BlockState;
 import com.sk89q.worldedit.world.block.BlockStateHolder;
 
@@ -47,8 +49,6 @@ import javax.annotation.Nullable;
  * given transform.
  */
 public class BlockTransformExtent extends AbstractDelegateExtent {
-
-    private static final double RIGHT_ANGLE = Math.toRadians(90);
 
     private final Transform transform;
 
@@ -79,37 +79,23 @@ public class BlockTransformExtent extends AbstractDelegateExtent {
      * @param reverse true to transform in the opposite direction
      * @return the same block
      */
-    private <T extends BlockStateHolder> T transformBlock(T block, boolean reverse) {
+    private <T extends BlockStateHolder<T>> T transformBlock(T block, boolean reverse) {
         return transform(block, reverse ? transform.inverse() : transform);
     }
 
     @Override
-    public BlockState getBlock(Vector position) {
+    public BlockState getBlock(BlockVector3 position) {
         return transformBlock(super.getBlock(position), false);
     }
 
     @Override
-    public BaseBlock getFullBlock(Vector position) {
+    public BaseBlock getFullBlock(BlockVector3 position) {
         return transformBlock(super.getFullBlock(position), false);
     }
 
     @Override
-    public boolean setBlock(Vector location, BlockStateHolder block) throws WorldEditException {
+    public <B extends BlockStateHolder<B>> boolean setBlock(BlockVector3 location, B block) throws WorldEditException {
         return super.setBlock(location, transformBlock(block, true));
-    }
-
-
-    /**
-     * Transform the given block using the given transform.
-     *
-     * <p>The provided block is modified.</p>
-     *
-     * @param block the block
-     * @param transform the transform
-     * @return the same block
-     */
-    public static <T extends BlockStateHolder> T transform(T block, Transform transform) {
-        return transform(block, transform, block);
     }
 
     private static final Set<String> directionNames = Sets.newHashSet("north", "south", "east", "west");
@@ -117,24 +103,61 @@ public class BlockTransformExtent extends AbstractDelegateExtent {
     /**
      * Transform the given block using the given transform.
      *
+     * <p>The provided block is <em>not</em> modified.</p>
+     *
      * @param block the block
      * @param transform the transform
-     * @param changedBlock the block to change
-     * @return the changed block
+     * @return the same block
      */
-    private static <T extends BlockStateHolder> T transform(T block, Transform transform, T changedBlock) {
+    public static <B extends BlockStateHolder<B>> B transform(B block, Transform transform) {
         checkNotNull(block);
         checkNotNull(transform);
 
-        List<? extends Property> properties = block.getBlockType().getProperties();
+        B result = block;
+        List<? extends Property<?>> properties = block.getBlockType().getProperties();
 
-        for (Property property : properties) {
+        for (Property<?> property : properties) {
             if (property instanceof DirectionalProperty) {
+                DirectionalProperty dirProp = (DirectionalProperty) property;
                 Direction value = (Direction) block.getState(property);
                 if (value != null) {
-                    Vector newValue = getNewStateValue((DirectionalProperty) property, transform, value.toVector());
+                    Vector3 newValue = getNewStateValue(dirProp.getValues(), transform, value.toVector());
                     if (newValue != null) {
-                        changedBlock = (T) changedBlock.with(property, Direction.findClosest(newValue, Direction.Flag.ALL));
+                        result = result.with(dirProp, Direction.findClosest(newValue, Direction.Flag.ALL));
+                    }
+                }
+            } else if (property instanceof EnumProperty) {
+                EnumProperty enumProp = (EnumProperty) property;
+                if (property.getName().equals("axis")) {
+                    // We have an axis - this is something we can do the rotations to :sunglasses:
+                    Direction value = null;
+                    switch ((String) block.getState(property)) {
+                        case "x":
+                            value = Direction.EAST;
+                            break;
+                        case "y":
+                            value = Direction.UP;
+                            break;
+                        case "z":
+                            value = Direction.NORTH;
+                            break;
+                    }
+                    if (value != null) {
+                        Vector3 newValue = getNewStateValue(Direction.valuesOf(Direction.Flag.UPRIGHT | Direction.Flag.CARDINAL), transform, value.toVector());
+                        if (newValue != null) {
+                            String axis = null;
+                            Direction newDir = Direction.findClosest(newValue, Direction.Flag.UPRIGHT | Direction.Flag.CARDINAL);
+                            if (newDir == Direction.NORTH || newDir == Direction.SOUTH) {
+                                axis = "z";
+                            } else if (newDir == Direction.EAST || newDir == Direction.WEST) {
+                                axis = "x";
+                            } else if (newDir == Direction.UP || newDir == Direction.DOWN) {
+                                axis = "y";
+                            }
+                            if (axis != null) {
+                                result = result.with(enumProp, axis);
+                            }
+                        }
                     }
                 }
             }
@@ -155,29 +178,29 @@ public class BlockTransformExtent extends AbstractDelegateExtent {
 
         if (directionalProperties.size() > 0) {
             for (String directionName : directionNames) {
-                changedBlock = (T) changedBlock.with(block.getBlockType().getProperty(directionName), directionalProperties.contains(directionName));
+                result = result.with(block.getBlockType().getProperty(directionName), directionalProperties.contains(directionName));
             }
         }
 
-        return changedBlock;
+        return result;
     }
 
     /**
      * Get the new value with the transformed direction.
      *
-     * @param state the state
+     * @param allowedStates the allowed states
      * @param transform the transform
      * @param oldDirection the old direction to transform
      * @return a new state or null if none could be found
      */
     @Nullable
-    private static Vector getNewStateValue(DirectionalProperty state, Transform transform, Vector oldDirection) {
-        Vector newDirection = transform.apply(oldDirection).subtract(transform.apply(Vector.ZERO)).normalize();
-        Vector newValue = null;
+    private static Vector3 getNewStateValue(List<Direction> allowedStates, Transform transform, Vector3 oldDirection) {
+        Vector3 newDirection = transform.apply(oldDirection).subtract(transform.apply(Vector3.ZERO)).normalize();
+        Vector3 newValue = null;
         double closest = -2;
         boolean found = false;
 
-        for (Direction v : state.getValues()) {
+        for (Direction v : allowedStates) {
             double dot = v.toVector().normalize().dot(newDirection);
             if (dot >= closest) {
                 closest = dot;

@@ -30,7 +30,6 @@ import com.sk89q.worldedit.registry.state.Property;
 import com.sk89q.worldedit.world.item.ItemType;
 import com.sk89q.worldedit.world.item.ItemTypes;
 import com.sk89q.worldedit.world.registry.BlockMaterial;
-import com.sk89q.worldedit.world.registry.BundledBlockData;
 import com.sk89q.worldedit.world.registry.LegacyMapper;
 
 import java.util.ArrayList;
@@ -49,7 +48,8 @@ public class BlockType {
     private final String id;
     private final Function<BlockState, BlockState> values;
     private final AtomicReference<BlockState> defaultState = new AtomicReference<>();
-    private final AtomicReference<Map<String, ? extends Property>> properties = new AtomicReference<>();
+    private final AtomicReference<FuzzyBlockState> emptyFuzzy = new AtomicReference<>();
+    private final AtomicReference<Map<String, ? extends Property<?>>> properties = new AtomicReference<>();
     private final AtomicReference<BlockMaterial> blockMaterial = new AtomicReference<>();
     private final AtomicReference<Map<Map<Property<?>, Object>, BlockState>> blockStatesMap = new AtomicReference<>();
 
@@ -101,11 +101,11 @@ public class BlockType {
      * @return The name, or ID
      */
     public String getName() {
-        BundledBlockData.BlockEntry entry = BundledBlockData.getInstance().findById(this.id);
-        if (entry == null) {
+        String name = WorldEdit.getInstance().getPlatformManager().queryCapability(Capability.GAME_HOOKS).getRegistries().getBlockRegistry().getName(this);
+        if (name == null) {
             return getId();
         } else {
-            return entry.localizedName;
+            return name;
         }
     }
 
@@ -114,7 +114,7 @@ public class BlockType {
      *
      * @return The properties map
      */
-    public Map<String, ? extends Property> getPropertyMap() {
+    public Map<String, ? extends Property<?>> getPropertyMap() {
         return updateField(properties, () -> ImmutableMap.copyOf(WorldEdit.getInstance().getPlatformManager()
                 .queryCapability(Capability.GAME_HOOKS).getRegistries().getBlockRegistry().getProperties(this)));
     }
@@ -124,7 +124,7 @@ public class BlockType {
      *
      * @return the properties
      */
-    public List<? extends Property> getProperties() {
+    public List<? extends Property<?>> getProperties() {
         return ImmutableList.copyOf(this.getPropertyMap().values());
     }
 
@@ -135,7 +135,9 @@ public class BlockType {
      * @return The property
      */
     public <V> Property<V> getProperty(String name) {
-        Property<V> property = getPropertyMap().get(name);
+        // Assume it works, CCE later at runtime if not.
+        @SuppressWarnings("unchecked")
+        Property<V> property = (Property<V>) getPropertyMap().get(name);
         checkArgument(property != null, "%s has no property named %s", this, name);
         return property;
     }
@@ -153,6 +155,10 @@ public class BlockType {
             }
             return defaultState;
         });
+    }
+
+    public FuzzyBlockState getFuzzyMatcher() {
+        return updateField(emptyFuzzy, () -> new FuzzyBlockState(this));
     }
 
     /**

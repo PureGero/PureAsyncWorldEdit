@@ -21,16 +21,16 @@ package com.sk89q.worldedit.extent.clipboard;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEditException;
-import com.sk89q.worldedit.world.block.BaseBlock;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.function.operation.Operation;
+import com.sk89q.worldedit.math.BlockVector2;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.biome.BaseBiome;
+import com.sk89q.worldedit.world.block.BaseBlock;
 import com.sk89q.worldedit.world.block.BlockState;
 import com.sk89q.worldedit.world.block.BlockStateHolder;
 import com.sk89q.worldedit.world.block.BlockTypes;
@@ -48,8 +48,8 @@ import javax.annotation.Nullable;
 public class BlockArrayClipboard implements Clipboard {
 
     private final Region region;
-    private Vector origin;
-    private final BlockStateHolder[][][] blocks;
+    private BlockVector3 origin;
+    private final BaseBlock[][][] blocks;
     private final List<ClipboardEntity> entities = new ArrayList<>();
 
     /**
@@ -64,8 +64,8 @@ public class BlockArrayClipboard implements Clipboard {
         this.region = region.clone();
         this.origin = region.getMinimumPoint();
 
-        Vector dimensions = getDimensions();
-        blocks = new BlockStateHolder[dimensions.getBlockX()][dimensions.getBlockY()][dimensions.getBlockZ()];
+        BlockVector3 dimensions = getDimensions();
+        blocks = new BaseBlock[dimensions.getBlockX()][dimensions.getBlockY()][dimensions.getBlockZ()];
     }
 
     @Override
@@ -74,27 +74,27 @@ public class BlockArrayClipboard implements Clipboard {
     }
 
     @Override
-    public Vector getOrigin() {
+    public BlockVector3 getOrigin() {
         return origin;
     }
 
     @Override
-    public void setOrigin(Vector origin) {
+    public void setOrigin(BlockVector3 origin) {
         this.origin = origin;
     }
 
     @Override
-    public Vector getDimensions() {
+    public BlockVector3 getDimensions() {
         return region.getMaximumPoint().subtract(region.getMinimumPoint()).add(1, 1, 1);
     }
 
     @Override
-    public Vector getMinimumPoint() {
+    public BlockVector3 getMinimumPoint() {
         return region.getMinimumPoint();
     }
 
     @Override
-    public Vector getMaximumPoint() {
+    public BlockVector3 getMaximumPoint() {
         return region.getMaximumPoint();
     }
 
@@ -102,7 +102,7 @@ public class BlockArrayClipboard implements Clipboard {
     public List<? extends Entity> getEntities(Region region) {
         List<Entity> filtered = new ArrayList<>();
         for (Entity entity : entities) {
-            if (region.contains(entity.getLocation().toVector())) {
+            if (region.contains(entity.getLocation().toVector().toBlockPoint())) {
                 filtered.add(entity);
             }
         }
@@ -123,10 +123,10 @@ public class BlockArrayClipboard implements Clipboard {
     }
 
     @Override
-    public BlockState getBlock(Vector position) {
+    public BlockState getBlock(BlockVector3 position) {
         if (region.contains(position)) {
-            Vector v = position.subtract(region.getMinimumPoint());
-            BlockStateHolder block = blocks[v.getBlockX()][v.getBlockY()][v.getBlockZ()];
+            BlockVector3 v = position.subtract(region.getMinimumPoint());
+            BaseBlock block = blocks[v.getBlockX()][v.getBlockY()][v.getBlockZ()];
             if (block != null) {
                 return block.toImmutableState();
             }
@@ -136,12 +136,12 @@ public class BlockArrayClipboard implements Clipboard {
     }
 
     @Override
-    public BaseBlock getFullBlock(Vector position) {
+    public BaseBlock getFullBlock(BlockVector3 position) {
         if (region.contains(position)) {
-            Vector v = position.subtract(region.getMinimumPoint());
-            BlockStateHolder block = blocks[v.getBlockX()][v.getBlockY()][v.getBlockZ()];
+            BlockVector3 v = position.subtract(region.getMinimumPoint());
+            BaseBlock block = blocks[v.getBlockX()][v.getBlockY()][v.getBlockZ()];
             if (block != null) {
-                return block.toBaseBlock();
+                return block;
             }
         }
 
@@ -149,10 +149,10 @@ public class BlockArrayClipboard implements Clipboard {
     }
 
     @Override
-    public boolean setBlock(Vector position, BlockStateHolder block) throws WorldEditException {
+    public <B extends BlockStateHolder<B>> boolean setBlock(BlockVector3 position, B block) throws WorldEditException {
         if (region.contains(position)) {
-            Vector v = position.subtract(region.getMinimumPoint());
-            blocks[v.getBlockX()][v.getBlockY()][v.getBlockZ()] = block;
+            BlockVector3 v = position.subtract(region.getMinimumPoint());
+            blocks[v.getBlockX()][v.getBlockY()][v.getBlockZ()] = block.toBaseBlock();
             return true;
         } else {
             return false;
@@ -160,12 +160,12 @@ public class BlockArrayClipboard implements Clipboard {
     }
 
     @Override
-    public BaseBiome getBiome(Vector2D position) {
+    public BaseBiome getBiome(BlockVector2 position) {
         return new BaseBiome(0);
     }
 
     @Override
-    public boolean setBiome(Vector2D position, BaseBiome biome) {
+    public boolean setBiome(BlockVector2 position, BaseBiome biome) {
         return false;
     }
 

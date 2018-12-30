@@ -21,12 +21,13 @@ package com.sk89q.worldedit.extension.platform;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseItemStack;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
 import com.sk89q.worldedit.internal.cui.CUIEvent;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.math.Vector3;
 import com.sk89q.worldedit.session.SessionKey;
 import com.sk89q.worldedit.util.HandSide;
 import com.sk89q.worldedit.util.Location;
@@ -82,6 +83,11 @@ class PlayerProxy extends AbstractPlayerActor {
     }
 
     @Override
+    public String getDisplayName() {
+        return basePlayer.getDisplayName();
+    }
+
+    @Override
     public BaseEntity getState() {
         throw new UnsupportedOperationException("Can't getState() on a player");
     }
@@ -92,7 +98,12 @@ class PlayerProxy extends AbstractPlayerActor {
     }
 
     @Override
-    public void setPosition(Vector pos, float pitch, float yaw) {
+    public boolean setLocation(Location location) {
+        return basePlayer.setLocation(location);
+    }
+
+    @Override
+    public void setPosition(Vector3 pos, float pitch, float yaw) {
         basePlayer.setPosition(pos, pitch, yaw);
     }
 
@@ -158,7 +169,7 @@ class PlayerProxy extends AbstractPlayerActor {
     }
 
     @Override
-    public void sendFakeBlock(Vector pos, BlockStateHolder block) {
+    public <B extends BlockStateHolder<B>> void sendFakeBlock(BlockVector3 pos, B block) {
         basePlayer.sendFakeBlock(pos, block);
     }
 }

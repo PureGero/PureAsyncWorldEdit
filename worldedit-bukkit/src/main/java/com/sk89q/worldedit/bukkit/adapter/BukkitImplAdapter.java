@@ -20,10 +20,11 @@
 package com.sk89q.worldedit.bukkit.adapter;
 
 import com.sk89q.jnbt.CompoundTag;
-import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.world.block.BaseBlock;
 import com.sk89q.worldedit.entity.BaseEntity;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.registry.state.Property;
+import com.sk89q.worldedit.world.block.BlockState;
 import com.sk89q.worldedit.world.block.BlockStateHolder;
 import com.sk89q.worldedit.world.block.BlockType;
 import org.bukkit.Location;
@@ -76,7 +77,16 @@ public interface BukkitImplAdapter {
      * @param notifyAndLight notify and light if set
      * @return true if a block was likely changed
      */
-    boolean setBlock(Location location, BlockStateHolder state, boolean notifyAndLight);
+    boolean setBlock(Location location, BlockStateHolder<?> state, boolean notifyAndLight);
+
+    /**
+     * Notifies the simulation that the block at the given location has
+     * been changed and it must be re-lighted (and issue other events).
+     *
+     * @param position position of the block
+     * @param previousType the type of the previous block that was there
+     */
+    void notifyAndLightBlock(Location position, BlockState previousType);
 
     /**
      * Get the state for the given entity.
@@ -103,7 +113,7 @@ public interface BukkitImplAdapter {
      * @param blockType The block type
      * @return The properties map
      */
-    Map<String, ? extends Property> getProperties(BlockType blockType);
+    Map<String, ? extends Property<?>> getProperties(BlockType blockType);
 
     /**
      * Send the given NBT data to the player.
@@ -112,7 +122,7 @@ public interface BukkitImplAdapter {
      * @param pos The position
      * @param nbtData The NBT Data
      */
-    void sendFakeNBT(Player player, Vector pos, CompoundTag nbtData);
+    void sendFakeNBT(Player player, BlockVector3 pos, CompoundTag nbtData);
 
     /**
      * Make the client think it has operator status.

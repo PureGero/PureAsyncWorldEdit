@@ -135,14 +135,14 @@ public class BaseBlock implements BlockStateHolder<BaseBlock>, TileEntityBlock {
     public boolean equals(Object o) {
         if (!(o instanceof BaseBlock)) {
             if (!hasNbtData() && o instanceof BlockStateHolder) {
-                return Objects.equals(toImmutableState(), ((BlockStateHolder) o).toImmutableState());
+                return Objects.equals(toImmutableState(), ((BlockStateHolder<?>) o).toImmutableState());
             }
             return false;
         }
 
         final BaseBlock otherBlock = (BaseBlock) o;
 
-        return this.toImmutableState().equalsFuzzy(otherBlock.toImmutableState()) && Objects.equals(getNbtData(), otherBlock.getNbtData());
+        return this.blockState.equalsFuzzy(otherBlock.blockState) && Objects.equals(getNbtData(), otherBlock.getNbtData());
     }
 
     /**
@@ -152,8 +152,8 @@ public class BaseBlock implements BlockStateHolder<BaseBlock>, TileEntityBlock {
      * @return true if equal
      */
     @Override
-    public boolean equalsFuzzy(BlockStateHolder o) {
-        return this.toImmutableState().equalsFuzzy(o);
+    public boolean equalsFuzzy(BlockStateHolder<?> o) {
+        return this.blockState.equalsFuzzy(o);
     }
 
     @Override

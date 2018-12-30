@@ -26,6 +26,7 @@ import java.util.Queue;
 import com.sk89q.worldedit.EditSession.Stage;
 import com.sk89q.worldedit.extent.AbstractDelegateExtent;
 import com.sk89q.worldedit.extent.Extent;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.world.block.BlockStateHolder;
 
 /**
@@ -45,11 +46,11 @@ public class BlockQueue extends AbstractDelegateExtent implements Closeable {
     }
 
     @Override
-    public boolean setBlock(Vector location, BlockStateHolder block) throws WorldEditException {
+    public boolean setBlock(BlockVector3 location, BlockStateHolder block) throws WorldEditException {
         return queue(location, block);
     }
     
-    public boolean queue(Vector position, BlockStateHolder block) {
+    public boolean queue(BlockVector3 position, BlockStateHolder block) {
         if (queue.isEmpty())
             WorldEdit.getInstance().getBlockQueueManager().addBlockQueue(this);;
         queue.add(new Queued(position, block));
@@ -76,10 +77,10 @@ public class BlockQueue extends AbstractDelegateExtent implements Closeable {
     }
     
     private static class Queued {
-        private Vector position;
+        private BlockVector3 position;
         private BlockStateHolder block;
         
-        private Queued(Vector position, BlockStateHolder block) {
+        private Queued(BlockVector3 position, BlockStateHolder block) {
             this.position = position;
             this.block = block;
         }
