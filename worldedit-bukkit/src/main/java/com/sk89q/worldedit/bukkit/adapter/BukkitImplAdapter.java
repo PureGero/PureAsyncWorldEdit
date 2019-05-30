@@ -20,15 +20,15 @@
 package com.sk89q.worldedit.bukkit.adapter;
 
 import com.sk89q.jnbt.CompoundTag;
-import com.sk89q.worldedit.world.block.BaseBlock;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.registry.state.Property;
+import com.sk89q.worldedit.world.DataFixer;
+import com.sk89q.worldedit.world.block.BaseBlock;
 import com.sk89q.worldedit.world.block.BlockState;
 import com.sk89q.worldedit.world.block.BlockStateHolder;
 import com.sk89q.worldedit.world.block.BlockType;
 import org.bukkit.Location;
-import org.bukkit.block.Biome;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
@@ -42,24 +42,19 @@ import javax.annotation.Nullable;
 public interface BukkitImplAdapter {
 
     /**
-     * Get the biome ID for the given biome.
+     * Get the Minecraft data version for the current world data.
      *
-     * <p>Returns 0 if it is not known or it doesn't exist.</p>
-     *
-     * @param biome biome
-     * @return the biome ID
+     * @return the data version
      */
-    int getBiomeId(Biome biome);
+    int getDataVersion();
 
     /**
-     * Get the biome ID for the given biome ID..
+     * Get a data fixer, or null if not supported
      *
-     * <p>Returns {@link Biome#OCEAN} if it is not known or it doesn't exist.</p>
-     *
-     * @param id the biome ID
-     * @return the biome
+     * @return the data fixer
      */
-    Biome getBiome(int id);
+    @Nullable
+    DataFixer getDataFixer();
 
     /**
      * Get the block at the given location.

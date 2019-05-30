@@ -21,6 +21,7 @@ package com.sk89q.worldedit.extension.factory.parser;
 
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.blocks.BaseItem;
+import com.sk89q.worldedit.command.util.SuggestionHelper;
 import com.sk89q.worldedit.extension.input.InputParseException;
 import com.sk89q.worldedit.extension.input.ParserContext;
 import com.sk89q.worldedit.internal.registry.InputParser;
@@ -28,10 +29,18 @@ import com.sk89q.worldedit.world.item.ItemType;
 import com.sk89q.worldedit.world.item.ItemTypes;
 import com.sk89q.worldedit.world.registry.LegacyMapper;
 
+import java.util.Locale;
+import java.util.stream.Stream;
+
 public class DefaultItemParser extends InputParser<BaseItem> {
 
     public DefaultItemParser(WorldEdit worldEdit) {
         super(worldEdit);
+    }
+
+    @Override
+    public Stream<String> getSuggestions(String input) {
+        return SuggestionHelper.getNamespacedRegistrySuggestions(ItemType.REGISTRY, input);
     }
 
     @Override
@@ -42,18 +51,22 @@ public class DefaultItemParser extends InputParser<BaseItem> {
             try {
                 String[] split = input.split(":");
                 ItemType type;
-                if (split.length == 1) {
+                if (split.length == 0) {
+                    throw new InputParseException("Invalid colon.");
+                } else if (split.length == 1) {
                     type = LegacyMapper.getInstance().getItemFromLegacy(Integer.parseInt(split[0]));
                 } else {
                     type = LegacyMapper.getInstance().getItemFromLegacy(Integer.parseInt(split[0]), Integer.parseInt(split[1]));
                 }
-                item = new BaseItem(type);
-            } catch (NumberFormatException e) {
+                if (type != null) {
+                    item = new BaseItem(type);
+                }
+            } catch (NumberFormatException ignored) {
             }
         }
 
         if (item == null) {
-            ItemType type = ItemTypes.get(input.toLowerCase());
+            ItemType type = ItemTypes.get(input.toLowerCase(Locale.ROOT));
             if (type != null) {
                 item = new BaseItem(type);
             }

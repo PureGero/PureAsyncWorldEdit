@@ -19,8 +19,6 @@
 
 package com.sk89q.worldedit.session;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -30,13 +28,17 @@ import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.event.platform.ConfigurationLoadEvent;
+import com.sk89q.worldedit.session.request.Request;
 import com.sk89q.worldedit.session.storage.JsonFileSessionStore;
 import com.sk89q.worldedit.session.storage.SessionStore;
 import com.sk89q.worldedit.session.storage.VoidStore;
 import com.sk89q.worldedit.util.concurrency.EvenMoreExecutors;
 import com.sk89q.worldedit.util.eventbus.Subscribe;
 import com.sk89q.worldedit.world.gamemode.GameModes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -46,10 +48,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
 import java.util.concurrent.Callable;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-import javax.annotation.Nullable;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Session manager for WorldEdit.
@@ -63,7 +63,7 @@ public class SessionManager {
     public static int EXPIRATION_GRACE = 600000;
     private static final int FLUSH_PERIOD = 1000 * 30;
     private static final ListeningExecutorService executorService = MoreExecutors.listeningDecorator(EvenMoreExecutors.newBoundedCachedThreadPool(0, 1, 5));
-    private static final Logger log = Logger.getLogger(SessionManager.class.getCanonicalName());
+    private static final Logger log = LoggerFactory.getLogger(SessionManager.class);
     private final Timer timer = new Timer();
     private final WorldEdit worldEdit;
     private final Map<UUID, SessionHolder> sessions = new HashMap<>();
@@ -149,37 +149,25 @@ public class SessionManager {
                 session = store.load(getKey(sessionKey));
                 session.postLoad();
             } catch (IOException e) {
-                log.log(Level.WARNING, "Failed to load saved session", e);
+                log.warn("Failed to load saved session", e);
                 session = new LocalSession();
             }
+            Request.request().setSession(session);
 
             session.setConfiguration(config);
             session.setBlockChangeLimit(config.defaultChangeLimit);
+            session.setTimeout(config.calculationTimeout);
 
             // Remember the session regardless of if it's currently active or not.
             // And have the SessionTracker FLUSH inactive sessions.
             sessions.put(getKey(owner), new SessionHolder(sessionKey, session));
         }
 
-        // Set the limit on the number of blocks that an operation can
-        // change at once, or don't if the owner has an override or there
-        // is no limit. There is also a default limit
-        int currentChangeLimit = session.getBlockChangeLimit();
-
-        if (!owner.hasPermission("worldedit.limit.unrestricted") && config.maxChangeLimit > -1) {
-            // If the default limit is infinite but there is a maximum
-            // limit, make sure to not have it be overridden
-            if (config.defaultChangeLimit < 0) {
-                if (currentChangeLimit < 0 || currentChangeLimit > config.maxChangeLimit) {
-                    session.setBlockChangeLimit(config.maxChangeLimit);
-                }
-            } else {
-                // Bound the change limit
-                int maxChangeLimit = config.maxChangeLimit;
-                if (currentChangeLimit == -1 || currentChangeLimit > maxChangeLimit) {
-                    session.setBlockChangeLimit(maxChangeLimit);
-                }
-            }
+        if (shouldBoundLimit(owner, "worldedit.limit.unrestricted", session.getBlockChangeLimit(), config.maxChangeLimit)) {
+            session.setBlockChangeLimit(config.maxChangeLimit);
+        }
+        if (shouldBoundLimit(owner, "worldedit.timeout.unrestricted", session.getTimeout(), config.maxCalculationTimeout)) {
+            session.setTimeout(config.maxCalculationTimeout);
         }
 
         // Have the session use inventory if it's enabled and the owner
@@ -190,6 +178,14 @@ public class SessionManager {
                 || (config.useInventoryCreativeOverride && (!(owner instanceof Player) || ((Player) owner).getGameMode() == GameModes.CREATIVE)))));
 
         return session;
+    }
+
+    private boolean shouldBoundLimit(SessionOwner owner, String permission, int currentLimit, int maxLimit) {
+        if (maxLimit > -1) { // if max is finite
+            return (currentLimit < 0 || currentLimit > maxLimit) // make sure current is finite and less than max
+                    && !owner.hasPermission(permission); // unless user has unlimited permission
+        }
+        return false;
     }
 
     /**
@@ -215,7 +211,7 @@ public class SessionManager {
                     try {
                         store.save(getKey(key), entry.getValue());
                     } catch (IOException e) {
-                        log.log(Level.WARNING, "Failed to write session for UUID " + getKey(key), e);
+                        log.warn("Failed to write session for UUID " + getKey(key), e);
                         exception = e;
                     }
                 }
@@ -247,12 +243,7 @@ public class SessionManager {
      * @return the key object
      */
     protected UUID getKey(SessionKey key) {
-        String forcedKey = System.getProperty("worldedit.session.uuidOverride");
-        if (forcedKey != null) {
-            return UUID.fromString(forcedKey);
-        } else {
-            return key.getUniqueId();
-        }
+        return key.getUniqueId();
     }
 
     /**
@@ -270,6 +261,7 @@ public class SessionManager {
      */
     public synchronized void unload() {
         clear();
+        timer.cancel();
     }
 
     /**
@@ -319,7 +311,7 @@ public class SessionManager {
     /**
      * Stores the owner of a session, the session, and the last active time.
      */
-    private static class SessionHolder {
+    private static final class SessionHolder {
         private final SessionKey key;
         private final LocalSession session;
         private long lastActive = System.currentTimeMillis();

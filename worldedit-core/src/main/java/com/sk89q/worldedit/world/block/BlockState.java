@@ -107,7 +107,7 @@ public class BlockState implements BlockStateHolder<BlockState> {
                         states.put(property, value, modifiedState);
                     } else {
                         System.out.println(stateMap);
-                        WorldEdit.logger.warning("Found a null state at " + this.withValue(property, value));
+                        WorldEdit.logger.warn("Found a null state at " + this.withValue(property, value));
                     }
                 }
             });
@@ -145,8 +145,11 @@ public class BlockState implements BlockStateHolder<BlockState> {
 
     @Override
     public boolean equalsFuzzy(BlockStateHolder<?> o) {
+        if (null == o) {
+            return false;
+        }
         if (this == o) {
-            // Added a reference equality check for
+            // Added a reference equality check for speediness
             return true;
         }
         if (!getBlockType().equals(o.getBlockType())) {
@@ -223,8 +226,13 @@ public class BlockState implements BlockStateHolder<BlockState> {
         return equalsFuzzy((BlockState) obj);
     }
 
+    private Integer hashCodeCache = null;
+
     @Override
     public int hashCode() {
-        return Objects.hash(blockType, values);
+        if (hashCodeCache == null) {
+            hashCodeCache = Objects.hash(blockType, values);
+        }
+        return hashCodeCache;
     }
 }

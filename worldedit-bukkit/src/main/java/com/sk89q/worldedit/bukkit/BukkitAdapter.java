@@ -33,6 +33,8 @@ import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.math.Vector3;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.World;
+import com.sk89q.worldedit.world.biome.BiomeType;
+import com.sk89q.worldedit.world.biome.BiomeTypes;
 import com.sk89q.worldedit.world.block.BlockState;
 import com.sk89q.worldedit.world.block.BlockStateHolder;
 import com.sk89q.worldedit.world.block.BlockType;
@@ -43,14 +45,15 @@ import com.sk89q.worldedit.world.gamemode.GameMode;
 import com.sk89q.worldedit.world.gamemode.GameModes;
 import com.sk89q.worldedit.world.item.ItemType;
 import com.sk89q.worldedit.world.item.ItemTypes;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.block.Biome;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -148,7 +151,7 @@ public class BukkitAdapter {
             if (match != null) {
                 return match;
             } else {
-                throw new IllegalArgumentException("Can't find a Bukkit world for " + world);
+                throw new IllegalArgumentException("Can't find a Bukkit world for " + world.getName());
             }
         }
     }
@@ -276,7 +279,7 @@ public class BukkitAdapter {
         if (!itemType.getId().startsWith("minecraft:")) {
             throw new IllegalArgumentException("Bukkit only supports Minecraft items");
         }
-        return Material.getMaterial(itemType.getId().substring(10).toUpperCase());
+        return Material.getMaterial(itemType.getId().substring(10).toUpperCase(Locale.ROOT));
     }
 
     /**
@@ -290,7 +293,7 @@ public class BukkitAdapter {
         if (!blockType.getId().startsWith("minecraft:")) {
             throw new IllegalArgumentException("Bukkit only supports Minecraft blocks");
         }
-        return Material.getMaterial(blockType.getId().substring(10).toUpperCase());
+        return Material.getMaterial(blockType.getId().substring(10).toUpperCase(Locale.ROOT));
     }
 
     /**
@@ -301,7 +304,28 @@ public class BukkitAdapter {
      */
     public static GameMode adapt(org.bukkit.GameMode gameMode) {
         checkNotNull(gameMode);
-        return GameModes.get(gameMode.name().toLowerCase());
+        return GameModes.get(gameMode.name().toLowerCase(Locale.ROOT));
+    }
+
+    /**
+     * Create a WorldEdit BiomeType from a Bukkit one.
+     *
+     * @param biome Bukkit Biome
+     * @return WorldEdit BiomeType
+     */
+    public static BiomeType adapt(Biome biome) {
+        return BiomeTypes.get(biome.name().toLowerCase(Locale.ROOT));
+    }
+
+    public static Biome adapt(BiomeType biomeType) {
+        if (!biomeType.getId().startsWith("minecraft:")) {
+            throw new IllegalArgumentException("Bukkit only supports vanilla biomes");
+        }
+        try {
+            return Biome.valueOf(biomeType.getId().substring(10).toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     /**
@@ -311,14 +335,14 @@ public class BukkitAdapter {
      * @return WorldEdit EntityType
      */
     public static EntityType adapt(org.bukkit.entity.EntityType entityType) {
-        return EntityTypes.get(entityType.name().toLowerCase());
+        return EntityTypes.get(entityType.getName().toLowerCase(Locale.ROOT));
     }
 
     public static org.bukkit.entity.EntityType adapt(EntityType entityType) {
         if (!entityType.getId().startsWith("minecraft:")) {
             throw new IllegalArgumentException("Bukkit only supports vanilla entities");
         }
-        return org.bukkit.entity.EntityType.fromName(entityType.getId().substring(10).toLowerCase());
+        return org.bukkit.entity.EntityType.fromName(entityType.getId().substring(10));
     }
 
     /**

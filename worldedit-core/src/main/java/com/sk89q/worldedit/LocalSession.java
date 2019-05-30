@@ -19,8 +19,6 @@
 
 package com.sk89q.worldedit;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import com.sk89q.jchronic.Chronic;
 import com.sk89q.jchronic.Options;
 import com.sk89q.jchronic.utils.Span;
@@ -53,6 +51,8 @@ import com.sk89q.worldedit.world.item.ItemType;
 import com.sk89q.worldedit.world.item.ItemTypes;
 import com.sk89q.worldedit.world.snapshot.Snapshot;
 
+import javax.annotation.Nullable;
+import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -60,7 +60,7 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.annotation.Nullable;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Stores session information.
@@ -85,13 +85,14 @@ public class LocalSession {
     private transient BlockTool pickaxeMode = new SinglePickaxe();
     private transient Map<ItemType, Tool> tools = new HashMap<>();
     private transient int maxBlocksChanged = -1;
+    private transient int maxTimeoutTime;
     private transient boolean useInventory;
     private transient Snapshot snapshot;
     private transient boolean hasCUISupport = false;
     private transient int cuiVersion = -1;
     private transient boolean fastMode = false;
     private transient Mask mask;
-    private transient TimeZone timezone = TimeZone.getDefault();
+    private transient ZoneId timezone = ZoneId.systemDefault();
     private transient BlockVector3 cuiTemporaryBlock;
     private transient EditSession.ReorderMode reorderMode = EditSession.ReorderMode.MULTI_STAGE;
 
@@ -169,7 +170,7 @@ public class LocalSession {
      *
      * @return the timezone
      */
-    public TimeZone getTimeZone() {
+    public ZoneId getTimeZone() {
         return timezone;
     }
 
@@ -178,7 +179,7 @@ public class LocalSession {
      *
      * @param timezone the user's timezone
      */
-    public void setTimezone(TimeZone timezone) {
+    public void setTimezone(ZoneId timezone) {
         checkNotNull(timezone);
         this.timezone = timezone;
     }
@@ -413,6 +414,24 @@ public class LocalSession {
      */
     public void setBlockChangeLimit(int maxBlocksChanged) {
         this.maxBlocksChanged = maxBlocksChanged;
+    }
+
+    /**
+     * Get the maximum time allowed for certain executions to run before cancelling them, such as expressions.
+     *
+     * @return timeout time, in milliseconds
+     */
+    public int getTimeout() {
+        return maxTimeoutTime;
+    }
+
+    /**
+     * Set the maximum number of blocks that can be changed.
+     *
+     * @param timeout the time, in milliseconds, to limit certain executions to, or -1 to disable
+     */
+    public void setTimeout(int timeout) {
+        this.maxTimeoutTime = timeout;
     }
 
     /**
@@ -779,7 +798,7 @@ public class LocalSession {
             try {
                 setCUIVersion(Integer.parseInt(split[1]));
             } catch (NumberFormatException e) {
-                WorldEdit.logger.warning("Error while reading CUI init message: " + e.getMessage());
+                WorldEdit.logger.warn("Error while reading CUI init message: " + e.getMessage());
                 this.failedCuiAttempts ++;
             }
         }
@@ -831,9 +850,10 @@ public class LocalSession {
     public Calendar detectDate(String input) {
         checkNotNull(input);
 
-        Time.setTimeZone(getTimeZone());
+        TimeZone tz = TimeZone.getTimeZone(getTimeZone());
+        Time.setTimeZone(tz);
         Options opt = new com.sk89q.jchronic.Options();
-        opt.setNow(Calendar.getInstance(getTimeZone()));
+        opt.setNow(Calendar.getInstance(tz));
         Span date = Chronic.parse(input, opt);
         if (date == null) {
             return null;
@@ -857,9 +877,10 @@ public class LocalSession {
         EditSession editSession = WorldEdit.getInstance().getEditSessionFactory()
                 .getEditSession(player.isPlayer() ? player.getWorld() : null,
                         getBlockChangeLimit(), blockBag, player);
+        Request.request().setEditSession(editSession);
+
         editSession.setFastMode(fastMode);
         editSession.setReorderMode(reorderMode);
-        Request.request().setEditSession(editSession);
         editSession.setMask(mask);
 
         return editSession;

@@ -19,11 +19,10 @@
 
 package com.sk89q.worldedit;
 
-import static com.sk89q.worldedit.event.platform.Interaction.HIT;
-import static com.sk89q.worldedit.event.platform.Interaction.OPEN;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.sk89q.worldedit.blocks.BaseItem;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.event.platform.BlockInteractEvent;
@@ -45,15 +44,14 @@ import com.sk89q.worldedit.scripting.CraftScriptContext;
 import com.sk89q.worldedit.scripting.CraftScriptEngine;
 import com.sk89q.worldedit.scripting.RhinoCraftScriptEngine;
 import com.sk89q.worldedit.session.SessionManager;
-import com.sk89q.worldedit.session.request.Request;
 import com.sk89q.worldedit.util.Direction;
 import com.sk89q.worldedit.util.Location;
+import com.sk89q.worldedit.util.concurrency.EvenMoreExecutors;
 import com.sk89q.worldedit.util.eventbus.EventBus;
 import com.sk89q.worldedit.util.io.file.FileSelectionAbortedException;
 import com.sk89q.worldedit.util.io.file.FilenameException;
 import com.sk89q.worldedit.util.io.file.FilenameResolutionException;
 import com.sk89q.worldedit.util.io.file.InvalidFilenameException;
-import com.sk89q.worldedit.util.logging.WorldEditPrefixHandler;
 import com.sk89q.worldedit.util.task.SimpleSupervisor;
 import com.sk89q.worldedit.util.task.Supervisor;
 import com.sk89q.worldedit.world.block.BlockStateHolder;
@@ -61,21 +59,27 @@ import com.sk89q.worldedit.world.block.BlockType;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import com.sk89q.worldedit.world.registry.BundledItemData;
 import com.sk89q.worldedit.world.registry.LegacyMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
+import javax.script.ScriptException;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-import javax.annotation.Nullable;
-import javax.script.ScriptException;
+import static com.sk89q.worldedit.event.platform.Interaction.HIT;
+import static com.sk89q.worldedit.event.platform.Interaction.OPEN;
 
 /**
  * The entry point and container for a working implementation of WorldEdit.
@@ -90,9 +94,9 @@ import javax.script.ScriptException;
  * method {@link WorldEdit#getInstance()}, which is shared among all
  * platforms within the same classloader hierarchy.</p>
  */
-public class WorldEdit {
+public final class WorldEdit {
 
-    public static final Logger logger = Logger.getLogger(WorldEdit.class.getCanonicalName());
+    public static final Logger logger = LoggerFactory.getLogger(WorldEdit.class);
 
     private final static WorldEdit instance = new WorldEdit();
     private static String version = "PureAsyncWorldEdit";
@@ -101,6 +105,7 @@ public class WorldEdit {
     private final PlatformManager platformManager = new PlatformManager(this);
     private final EditSessionFactory editSessionFactory = new EditSessionFactory.EditSessionFactoryImpl(eventBus);
     private final SessionManager sessions = new SessionManager(this);
+    private final ListeningExecutorService executorService = MoreExecutors.listeningDecorator(EvenMoreExecutors.newBoundedCachedThreadPool(0, 1, 20));;
     private final Supervisor supervisor = new SimpleSupervisor();
     private final BlockQueueManager blockQueueManager = new BlockQueueManager();
 
@@ -110,7 +115,6 @@ public class WorldEdit {
     private final PatternFactory patternFactory = new PatternFactory(this);
 
     static {
-        WorldEditPrefixHandler.register("com.sk89q.worldedit");
         getVersion();
     }
 
@@ -153,12 +157,21 @@ public class WorldEdit {
     }
 
     /**
-     * Get the supervisor.
+     * Get the supervisor. Internal, not for API use.
      *
      * @return the supervisor
      */
     public Supervisor getSupervisor() {
         return supervisor;
+    }
+
+    /**
+     * Get the executor service. Internal, not for API use.
+     *
+     * @return the executor service
+     */
+    public ListeningExecutorService getExecutorService() {
+        return executorService;
     }
 
     /**
@@ -275,22 +288,27 @@ public class WorldEdit {
             }
         } else {
             List<String> exts = extensions == null ? ImmutableList.of(defaultExt) : Lists.asList(defaultExt, extensions);
-            return getSafeFileWithExtensions(dir, filename,  exts, isSave);
+            f = getSafeFileWithExtensions(dir, filename, exts, isSave);
         }
 
         try {
-            String filePath = f.getCanonicalPath();
-            String dirPath = dir.getCanonicalPath();
+            Path filePath = Paths.get(f.toURI()).normalize();
+            Path dirPath = Paths.get(dir.toURI()).normalize();
 
-            if (!filePath.substring(0, dirPath.length()).equals(dirPath) && !getConfiguration().allowSymlinks) {
-                throw new FilenameResolutionException(filename,
-                        "Path is outside allowable root");
+            boolean inDir = filePath.startsWith(dirPath);
+            Path existingParent = filePath;
+            do {
+                existingParent = existingParent.getParent();
+            } while (existingParent != null && !existingParent.toFile().exists());
+
+            boolean isSym = existingParent != null && !existingParent.toRealPath().equals(existingParent);
+            if (!inDir || (!getConfiguration().allowSymlinks && isSym)) {
+                throw new FilenameResolutionException(filename, "Path is outside allowable root");
             }
 
-            return f;
+            return filePath.toFile();
         } catch (IOException e) {
-            throw new FilenameResolutionException(filename,
-                    "Failed to resolve path");
+            throw new FilenameResolutionException(filename, "Failed to resolve path");
         }
     }
 
@@ -300,9 +318,20 @@ public class WorldEdit {
             if (exts.size() != 1) {
                 exts = exts.subList(0, 1);
             }
+        } else {
+            int dot = filename.lastIndexOf('.');
+            if (dot < 0 || dot == filename.length() - 1) {
+                String currentExt = filename.substring(dot + 1);
+                if (exts.contains(currentExt) && checkFilename(filename)) {
+                    File f = new File(dir, filename);
+                    if (f.exists()) {
+                        return f;
+                    }
+                }
+            }
         }
         File result = null;
-        for (Iterator<String> iter = exts.iterator(); iter.hasNext() && (result == null || !result.exists());) {
+        for (Iterator<String> iter = exts.iterator(); iter.hasNext() && (result == null || (!isSave && !result.exists()));) {
             result = getSafeFileWithExtension(dir, filename, iter.next());
         }
         if (result == null) {
@@ -312,8 +341,11 @@ public class WorldEdit {
     }
 
     private File getSafeFileWithExtension(File dir, String filename, String extension) {
-        if (extension != null && filename.lastIndexOf('.') == -1) {
-            filename += "." + extension;
+        if (extension != null) {
+            int dot = filename.lastIndexOf('.');
+            if (dot < 0 || dot == filename.length() - 1 || !filename.substring(dot + 1).equalsIgnoreCase(extension)) {
+                filename += "." + extension;
+            }
         }
 
         if (!checkFilename(filename)) {
@@ -386,7 +418,7 @@ public class WorldEdit {
      * @throws UnknownDirectionException thrown if the direction is not known
      */
     public BlockVector3 getDirection(Player player, String dirStr) throws UnknownDirectionException {
-        dirStr = dirStr.toLowerCase();
+        dirStr = dirStr.toLowerCase(Locale.ROOT);
 
         final Direction dir = getPlayerDirection(player, dirStr);
 
@@ -407,7 +439,7 @@ public class WorldEdit {
      * @throws UnknownDirectionException thrown if the direction is not known
      */
     public BlockVector3 getDiagonalDirection(Player player, String dirStr) throws UnknownDirectionException {
-        dirStr = dirStr.toLowerCase();
+        dirStr = dirStr.toLowerCase(Locale.ROOT);
 
         final Direction dir = getPlayerDirection(player, dirStr);
 
@@ -588,8 +620,6 @@ public class WorldEdit {
      * @throws WorldEditException
      */
     public void runScript(Player player, File f, String[] args) throws WorldEditException {
-        Request.reset();
-
         String filename = f.getPath();
         int index = filename.lastIndexOf('.');
         String ext = filename.substring(index + 1);
@@ -619,7 +649,7 @@ public class WorldEdit {
             byte[] data = new byte[in.available()];
             in.readFully(data);
             in.close();
-            script = new String(data, 0, data.length, "utf-8");
+            script = new String(data, 0, data.length, StandardCharsets.UTF_8);
         } catch (IOException e) {
             player.printError("Script read error: " + e.getMessage());
             return;
@@ -651,13 +681,13 @@ public class WorldEdit {
         } catch (ScriptException e) {
             player.printError("Failed to execute:");
             player.printRaw(e.getMessage());
-            logger.log(Level.WARNING, "Failed to execute script", e);
+            logger.warn("Failed to execute script", e);
         } catch (NumberFormatException | WorldEditException e) {
             throw e;
         } catch (Throwable e) {
             player.printError("Failed to execute (see console):");
             player.printRaw(e.getClass().getCanonicalName());
-            logger.log(Level.WARNING, "Failed to execute script", e);
+            logger.warn("Failed to execute script", e);
         } finally {
             for (EditSession editSession : scriptContext.getEditSessions()) {
                 editSession.flushSession();

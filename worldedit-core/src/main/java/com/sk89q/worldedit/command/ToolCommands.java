@@ -19,10 +19,6 @@
 
 package com.sk89q.worldedit.command;
 
-import com.sk89q.minecraft.util.commands.Command;
-import com.sk89q.minecraft.util.commands.CommandContext;
-import com.sk89q.minecraft.util.commands.CommandPermissions;
-import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalConfiguration;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.WorldEdit;
@@ -36,12 +32,18 @@ import com.sk89q.worldedit.command.tool.FloodFillTool;
 import com.sk89q.worldedit.command.tool.LongRangeBuildTool;
 import com.sk89q.worldedit.command.tool.QueryTool;
 import com.sk89q.worldedit.command.tool.TreePlanter;
+import com.sk89q.worldedit.command.util.CommandPermissions;
+import com.sk89q.worldedit.command.util.CommandPermissionsConditionGenerator;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.function.pattern.BlockPattern;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.util.HandSide;
 import com.sk89q.worldedit.util.TreeGenerator;
+import org.enginehub.piston.annotation.Command;
+import org.enginehub.piston.annotation.CommandContainer;
+import org.enginehub.piston.annotation.param.Arg;
 
+@CommandContainer(superTypes = CommandPermissionsConditionGenerator.Registration.class)
 public class ToolCommands {
     private final WorldEdit we;
 
@@ -50,27 +52,21 @@ public class ToolCommands {
     }
 
     @Command(
-        aliases = { "none" },
-        usage = "",
-        desc = "Unbind a bound tool from your current item",
-        min = 0,
-        max = 0
+        name = "none",
+        desc = "Unbind a bound tool from your current item"
     )
-    public void none(Player player, LocalSession session, EditSession editSession, CommandContext args) throws WorldEditException {
+    public void none(Player player, LocalSession session) throws WorldEditException {
 
         session.setTool(player.getItemInHand(HandSide.MAIN_HAND).getType(), null);
         player.print("Tool unbound from your current item.");
     }
 
     @Command(
-        aliases = { "info" },
-        usage = "",
-        desc = "Block information tool",
-        min = 0,
-        max = 0
+        name = "info",
+        desc = "Block information tool"
     )
     @CommandPermissions("worldedit.tool.info")
-    public void info(Player player, LocalSession session, EditSession editSession, CommandContext args) throws WorldEditException {
+    public void info(Player player, LocalSession session) throws WorldEditException {
 
         BaseItemStack itemStack = player.getItemInHand(HandSide.MAIN_HAND);
         session.setTool(itemStack.getType(), new QueryTool());
@@ -79,52 +75,37 @@ public class ToolCommands {
     }
 
     @Command(
-        aliases = { "tree" },
-        usage = "[type]",
-        desc = "Tree generator tool",
-        min = 0,
-        max = 1
+        name = "tree",
+        desc = "Tree generator tool"
     )
     @CommandPermissions("worldedit.tool.tree")
-    public void tree(Player player, LocalSession session, EditSession editSession, CommandContext args) throws WorldEditException {
-
-        TreeGenerator.TreeType type = args.argsLength() > 0
-                ? TreeGenerator.lookup(args.getString(0))
-                : TreeGenerator.TreeType.TREE;
-
-        if (type == null) {
-            player.printError("Tree type '" + args.getString(0) + "' is unknown.");
-            return;
-        }
-
+    public void tree(Player player, LocalSession session,
+                     @Arg(desc = "Type of tree to generate", def = "tree")
+                     TreeGenerator.TreeType type) throws WorldEditException {
         BaseItemStack itemStack = player.getItemInHand(HandSide.MAIN_HAND);
         session.setTool(itemStack.getType(), new TreePlanter(type));
         player.print("Tree tool bound to " + itemStack.getType().getName() + ".");
     }
 
     @Command(
-        aliases = { "repl" },
-        usage = "<block>",
-        desc = "Block replacer tool",
-        min = 1,
-        max = 1
+        name = "repl",
+        desc = "Block replacer tool"
     )
     @CommandPermissions("worldedit.tool.replacer")
-    public void repl(Player player, LocalSession session, Pattern pattern) throws WorldEditException {
+    public void repl(Player player, LocalSession session,
+                     @Arg(desc = "The pattern of blocks to place")
+                         Pattern pattern) throws WorldEditException {
         BaseItemStack itemStack = player.getItemInHand(HandSide.MAIN_HAND);
         session.setTool(itemStack.getType(), new BlockReplacer(pattern));
         player.print("Block replacer tool bound to " + itemStack.getType().getName() + ".");
     }
 
     @Command(
-        aliases = { "cycler" },
-        usage = "",
-        desc = "Block data cycler tool",
-        min = 0,
-        max = 0
+        name = "cycler",
+        desc = "Block data cycler tool"
     )
     @CommandPermissions("worldedit.tool.data-cycler")
-    public void cycler(Player player, LocalSession session, EditSession editSession, CommandContext args) throws WorldEditException {
+    public void cycler(Player player, LocalSession session) throws WorldEditException {
 
         BaseItemStack itemStack = player.getItemInHand(HandSide.MAIN_HAND);
         session.setTool(itemStack.getType(), new BlockDataCyler());
@@ -132,14 +113,16 @@ public class ToolCommands {
     }
 
     @Command(
-        aliases = { "floodfill", "flood" },
-        usage = "<pattern> <range>",
-        desc = "Flood fill tool",
-        min = 2,
-        max = 2
+        name = "floodfill",
+        aliases = { "flood" },
+        desc = "Flood fill tool"
     )
     @CommandPermissions("worldedit.tool.flood-fill")
-    public void floodFill(Player player, LocalSession session, Pattern pattern, int range) throws WorldEditException {
+    public void floodFill(Player player, LocalSession session,
+                          @Arg(desc = "The pattern to flood fill")
+                              Pattern pattern,
+                          @Arg(desc = "The range to perform the fill")
+                              int range) throws WorldEditException {
 
         LocalConfiguration config = we.getConfiguration();
 
@@ -154,14 +137,11 @@ public class ToolCommands {
     }
 
     @Command(
-            aliases = { "deltree" },
-            usage = "",
-            desc = "Floating tree remover tool",
-            min = 0,
-            max = 0
+        name = "deltree",
+        desc = "Floating tree remover tool"
     )
     @CommandPermissions("worldedit.tool.deltree")
-    public void deltree(Player player, LocalSession session, EditSession editSession, CommandContext args) throws WorldEditException {
+    public void deltree(Player player, LocalSession session) throws WorldEditException {
 
         BaseItemStack itemStack = player.getItemInHand(HandSide.MAIN_HAND);
         session.setTool(itemStack.getType(), new FloatingTreeRemover());
@@ -170,14 +150,11 @@ public class ToolCommands {
     }
 
     @Command(
-            aliases = { "farwand" },
-            usage = "",
-            desc = "Wand at a distance tool",
-            min = 0,
-            max = 0
+        name = "farwand",
+        desc = "Wand at a distance tool"
     )
     @CommandPermissions("worldedit.tool.farwand")
-    public void farwand(Player player, LocalSession session, EditSession editSession, CommandContext args) throws WorldEditException {
+    public void farwand(Player player, LocalSession session) throws WorldEditException {
 
         BaseItemStack itemStack = player.getItemInHand(HandSide.MAIN_HAND);
         session.setTool(itemStack.getType(), new DistanceWand());
@@ -185,14 +162,16 @@ public class ToolCommands {
     }
 
     @Command(
-            aliases = { "lrbuild", "/lrbuild" },
-            usage = "<leftclick block> <rightclick block>",
-            desc = "Long-range building tool",
-            min = 2,
-            max = 2
+        name = "lrbuild",
+        aliases = { "/lrbuild" },
+        desc = "Long-range building tool"
     )
     @CommandPermissions("worldedit.tool.lrbuild")
-    public void longrangebuildtool(Player player, LocalSession session, Pattern secondary, Pattern primary) throws WorldEditException {
+    public void longrangebuildtool(Player player, LocalSession session,
+                                   @Arg(desc = "Block to set on left-click")
+                                       Pattern primary,
+                                   @Arg(desc = "Block to set on right-click")
+                                       Pattern secondary) throws WorldEditException {
         BaseItemStack itemStack = player.getItemInHand(HandSide.MAIN_HAND);
 
         session.setTool(itemStack.getType(), new LongRangeBuildTool(primary, secondary));
@@ -205,7 +184,7 @@ public class ToolCommands {
         if (secondary instanceof BlockPattern) {
             secondaryName = ((BlockPattern) secondary).getBlock().getBlockType().getName();
         }
-        player.print("Left-click set to " + secondaryName + "; right-click set to "
-                + primaryName + ".");
+        player.print("Left-click set to " + primaryName + "; right-click set to "
+                + secondaryName + ".");
     }
 }

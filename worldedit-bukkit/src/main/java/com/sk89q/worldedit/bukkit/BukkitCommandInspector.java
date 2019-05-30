@@ -19,26 +19,32 @@
 
 package com.sk89q.worldedit.bukkit;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import com.sk89q.bukkit.util.CommandInspector;
-import com.sk89q.minecraft.util.commands.CommandLocals;
 import com.sk89q.worldedit.extension.platform.Actor;
-import com.sk89q.worldedit.util.command.CommandMapping;
-import com.sk89q.worldedit.util.command.Description;
-import com.sk89q.worldedit.util.command.Dispatcher;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.enginehub.piston.CommandManager;
+import org.enginehub.piston.CommandParameters;
+import org.enginehub.piston.NoInputCommandParameters;
+import org.enginehub.piston.inject.InjectedValueStore;
+import org.enginehub.piston.inject.Key;
+import org.enginehub.piston.inject.MapBackedValueStore;
+import org.enginehub.piston.inject.MemoizingValueAccess;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.logging.Logger;
+import java.util.Optional;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.sk89q.worldedit.bukkit.BukkitTextAdapter.reduceToText;
 
 class BukkitCommandInspector implements CommandInspector {
 
-    private static final Logger logger = Logger.getLogger(BukkitCommandInspector.class.getCanonicalName());
+    private static final Logger logger = LoggerFactory.getLogger(BukkitCommandInspector.class);
     private final WorldEditPlugin plugin;
-    private final Dispatcher dispatcher;
+    private final CommandManager dispatcher;
 
-    BukkitCommandInspector(WorldEditPlugin plugin, Dispatcher dispatcher) {
+    BukkitCommandInspector(WorldEditPlugin plugin, CommandManager dispatcher) {
         checkNotNull(plugin);
         checkNotNull(dispatcher);
         this.plugin = plugin;
@@ -47,36 +53,39 @@ class BukkitCommandInspector implements CommandInspector {
 
     @Override
     public String getShortText(Command command) {
-        CommandMapping mapping = dispatcher.get(command.getName());
-        if (mapping != null) {
-            return mapping.getDescription().getDescription();
+        Optional<org.enginehub.piston.Command> mapping = dispatcher.getCommand(command.getName());
+        if (mapping.isPresent()) {
+            return reduceToText(mapping.get().getDescription());
         } else {
-            logger.warning("BukkitCommandInspector doesn't know how about the command '" + command + "'");
+            logger.warn("BukkitCommandInspector doesn't know how about the command '" + command + "'");
             return "Help text not available";
         }
     }
 
     @Override
     public String getFullText(Command command) {
-        CommandMapping mapping = dispatcher.get(command.getName());
-        if (mapping != null) {
-            Description description = mapping.getDescription();
-            return "Usage: " + description.getUsage() + (description.getHelp() != null ? "\n" + description.getHelp() : "");
+        Optional<org.enginehub.piston.Command> mapping = dispatcher.getCommand(command.getName());
+        if (mapping.isPresent()) {
+            return reduceToText(mapping.get().getFullHelp());
         } else {
-            logger.warning("BukkitCommandInspector doesn't know how about the command '" + command + "'");
+            logger.warn("BukkitCommandInspector doesn't know how about the command '" + command + "'");
             return "Help text not available";
         }
     }
 
     @Override
     public boolean testPermission(CommandSender sender, Command command) {
-        CommandMapping mapping = dispatcher.get(command.getName());
-        if (mapping != null) {
-            CommandLocals locals = new CommandLocals();
-            locals.put(Actor.class, plugin.wrapCommandSender(sender));
-            return mapping.getCallable().testPermission(locals);
+        Optional<org.enginehub.piston.Command> mapping = dispatcher.getCommand(command.getName());
+        if (mapping.isPresent()) {
+            InjectedValueStore store = MapBackedValueStore.create();
+            store.injectValue(Key.of(Actor.class), context ->
+                Optional.of(plugin.wrapCommandSender(sender)));
+            CommandParameters parameters = NoInputCommandParameters.builder()
+                .injectedValues(MemoizingValueAccess.wrap(store))
+                .build();
+            return mapping.get().getCondition().satisfied(parameters);
         } else {
-            logger.warning("BukkitCommandInspector doesn't know how about the command '" + command + "'");
+            logger.warn("BukkitCommandInspector doesn't know how about the command '" + command + "'");
             return false;
         }
     }

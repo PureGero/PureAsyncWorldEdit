@@ -26,6 +26,8 @@ import com.sk89q.worldedit.function.pattern.BlockPattern;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.internal.registry.InputParser;
 
+import java.util.stream.Stream;
+
 public class SingleBlockPatternParser extends InputParser<Pattern> {
 
     public SingleBlockPatternParser(WorldEdit worldEdit) {
@@ -33,14 +35,13 @@ public class SingleBlockPatternParser extends InputParser<Pattern> {
     }
 
     @Override
-    public Pattern parseFromInput(String input, ParserContext context) throws InputParseException {
-        String[] items = input.split(",");
+    public Stream<String> getSuggestions(String input) {
+        return worldEdit.getBlockFactory().getSuggestions(input).stream();
+    }
 
-        if (items.length == 1) {
-            return new BlockPattern(worldEdit.getBlockFactory().parseFromInput(items[0], context));
-        } else {
-            return null;
-        }
+    @Override
+    public Pattern parseFromInput(String input, ParserContext context) throws InputParseException {
+        return new BlockPattern(worldEdit.getBlockFactory().parseFromInput(input, context));
     }
 
 }

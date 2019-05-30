@@ -26,31 +26,36 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.extension.input.InputParseException;
 import com.sk89q.worldedit.extension.input.ParserContext;
+import com.sk89q.worldedit.extension.platform.Capability;
 import com.sk89q.worldedit.math.Vector3;
 import com.sk89q.worldedit.util.gson.VectorAdapter;
+import com.sk89q.worldedit.util.io.ResourceLoader;
+import com.sk89q.worldedit.world.DataFixer;
 import com.sk89q.worldedit.world.block.BlockState;
 import com.sk89q.worldedit.world.item.ItemType;
 import com.sk89q.worldedit.world.item.ItemTypes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-import javax.annotation.Nullable;
+public final class LegacyMapper {
 
-public class LegacyMapper {
-
-    private static final Logger log = Logger.getLogger(LegacyMapper.class.getCanonicalName());
+    private static final Logger log = LoggerFactory.getLogger(LegacyMapper.class);
     private static LegacyMapper INSTANCE;
 
-    private Multimap<String, BlockState> stringToBlockMap = HashMultimap.create();
+    private Map<String, String> blockEntries = new HashMap<>();
+    private Map<String, BlockState> stringToBlockMap = new HashMap<>();
     private Multimap<BlockState, String> blockToStringMap = HashMultimap.create();
-    private Multimap<String, ItemType> stringToItemMap = HashMultimap.create();
+    private Map<String, ItemType> stringToItemMap = new HashMap<>();
     private Multimap<ItemType, String> itemToStringMap = HashMultimap.create();
 
     /**
@@ -60,7 +65,7 @@ public class LegacyMapper {
         try {
             loadFromResource();
         } catch (Throwable e) {
-            log.log(Level.WARNING, "Failed to load the built-in legacy id registry", e);
+            log.warn("Failed to load the built-in legacy id registry", e);
         }
     }
 
@@ -73,37 +78,57 @@ public class LegacyMapper {
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.registerTypeAdapter(Vector3.class, new VectorAdapter());
         Gson gson = gsonBuilder.disableHtmlEscaping().create();
-        URL url = LegacyMapper.class.getResource("legacy.json");
+        URL url = ResourceLoader.getResource(LegacyMapper.class, "legacy.json");
         if (url == null) {
             throw new IOException("Could not find legacy.json");
         }
         String data = Resources.toString(url, Charset.defaultCharset());
         LegacyDataFile dataFile = gson.fromJson(data, new TypeToken<LegacyDataFile>() {}.getType());
 
+        DataFixer fixer = WorldEdit.getInstance().getPlatformManager().queryCapability(Capability.WORLD_EDITING).getDataFixer();
         ParserContext parserContext = new ParserContext();
         parserContext.setPreferringWildcard(false);
         parserContext.setRestricted(false);
         parserContext.setTryLegacy(false); // This is legacy. Don't match itself.
 
         for (Map.Entry<String, String> blockEntry : dataFile.blocks.entrySet()) {
+            String id = blockEntry.getKey();
+            blockEntries.put(id, blockEntry.getValue());
             try {
-                String id = blockEntry.getKey();
                 BlockState state = WorldEdit.getInstance().getBlockFactory().parseFromInput(blockEntry.getValue(), parserContext).toImmutableState();
                 blockToStringMap.put(state, id);
                 stringToBlockMap.put(id, state);
-            } catch (Exception e) {
-                log.warning("Unknown block: " + blockEntry.getValue());
+            } catch (InputParseException e) {
+                boolean fixed = false;
+                if (fixer != null) {
+                    String newEntry = fixer.fixUp(DataFixer.FixTypes.BLOCK_STATE, blockEntry.getValue(), 1631);
+                    try {
+                        BlockState state = WorldEdit.getInstance().getBlockFactory().parseFromInput(newEntry, parserContext).toImmutableState();
+                        blockToStringMap.put(state, id);
+                        stringToBlockMap.put(id, state);
+                        fixed = true;
+                    } catch (InputParseException ignored) {
+                    }
+                }
+                if (!fixed) {
+                    log.warn("Unknown block: " + blockEntry.getValue());
+                }
             }
         }
 
         for (Map.Entry<String, String> itemEntry : dataFile.items.entrySet()) {
-            try {
-                String id = itemEntry.getKey();
-                ItemType type = ItemTypes.get(itemEntry.getValue());
+            String id = itemEntry.getKey();
+            String value = itemEntry.getValue();
+            ItemType type = ItemTypes.get(value);
+            if (type == null && fixer != null) {
+                value = fixer.fixUp(DataFixer.FixTypes.ITEM_TYPE, value, 1631);
+                type = ItemTypes.get(value);
+            }
+            if (type == null) {
+                log.warn("Unknown item: " + value);
+            } else {
                 itemToStringMap.put(type, id);
                 stringToItemMap.put(id, type);
-            } catch (Exception e) {
-                log.warning("Unknown item: " + itemEntry.getValue());
             }
         }
     }
@@ -115,16 +140,16 @@ public class LegacyMapper {
 
     @Nullable
     public ItemType getItemFromLegacy(int legacyId, int data) {
-        return stringToItemMap.get(legacyId + ":" + data).stream().findFirst().orElse(null);
+        return stringToItemMap.get(legacyId + ":" + data);
     }
 
     @Nullable
     public int[] getLegacyFromItem(ItemType itemType) {
-        if (!itemToStringMap.containsKey(itemType)) {
-            return null;
-        } else {
+        if (itemToStringMap.containsKey(itemType)) {
             String value = itemToStringMap.get(itemType).stream().findFirst().get();
             return Arrays.stream(value.split(":")).mapToInt(Integer::parseInt).toArray();
+        } else {
+            return null;
         }
     }
 
@@ -135,16 +160,16 @@ public class LegacyMapper {
 
     @Nullable
     public BlockState getBlockFromLegacy(int legacyId, int data) {
-        return stringToBlockMap.get(legacyId + ":" + data).stream().findFirst().orElse(null);
+        return stringToBlockMap.get(legacyId + ":" + data);
     }
 
     @Nullable
     public int[] getLegacyFromBlock(BlockState blockState) {
-        if (!blockToStringMap.containsKey(blockState)) {
-            return null;
-        } else {
+        if (blockToStringMap.containsKey(blockState)) {
             String value = blockToStringMap.get(blockState).stream().findFirst().get();
             return Arrays.stream(value.split(":")).mapToInt(Integer::parseInt).toArray();
+        } else {
+            return null;
         }
     }
 
