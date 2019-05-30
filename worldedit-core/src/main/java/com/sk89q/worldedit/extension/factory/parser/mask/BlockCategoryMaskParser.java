@@ -20,15 +20,17 @@
 package com.sk89q.worldedit.extension.factory.parser.mask;
 
 import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.command.util.SuggestionHelper;
 import com.sk89q.worldedit.extension.input.InputParseException;
 import com.sk89q.worldedit.extension.input.ParserContext;
-import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.mask.BlockCategoryMask;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.internal.registry.InputParser;
-import com.sk89q.worldedit.session.request.Request;
-import com.sk89q.worldedit.world.block.BlockCategories;
+import com.sk89q.worldedit.session.request.RequestExtent;
 import com.sk89q.worldedit.world.block.BlockCategory;
+
+import java.util.Locale;
+import java.util.stream.Stream;
 
 public class BlockCategoryMaskParser extends InputParser<Mask> {
 
@@ -37,19 +39,22 @@ public class BlockCategoryMaskParser extends InputParser<Mask> {
     }
 
     @Override
+    public Stream<String> getSuggestions(String input) {
+        return SuggestionHelper.getBlockCategorySuggestions(input, false);
+    }
+
+    @Override
     public Mask parseFromInput(String input, ParserContext context) throws InputParseException {
         if (!input.startsWith("##")) {
             return null;
         }
 
-        Extent extent = Request.request().getEditSession();
-
         // This means it's a tag mask.
-        BlockCategory category = BlockCategories.get(input.substring(2).toLowerCase());
+        BlockCategory category = BlockCategory.REGISTRY.get(input.substring(2).toLowerCase(Locale.ROOT));
         if (category == null) {
             throw new InputParseException("Unrecognised tag '" + input.substring(2) + '\'');
         } else {
-            return new BlockCategoryMask(extent, category);
+            return new BlockCategoryMask(new RequestExtent(), category);
         }
     }
 }

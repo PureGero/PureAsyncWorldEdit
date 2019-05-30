@@ -22,6 +22,8 @@ package com.sk89q.wepif;
 import com.sk89q.util.yaml.YAMLProcessor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Server;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -30,14 +32,13 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class FlatFilePermissionsResolver implements PermissionsResolver {
 
-    private static final Logger log = Logger.getLogger(FlatFilePermissionsResolver.class.getCanonicalName());
+    private static final Logger log = LoggerFactory.getLogger(FlatFilePermissionsResolver.class);
 
     private Map<String, Set<String>> userPermissionsCache;
     private Set<String> defaultPermissionsCache;
@@ -98,7 +99,7 @@ public class FlatFilePermissionsResolver implements PermissionsResolver {
                 }
             }
         } catch (IOException e) {
-            log.log(Level.WARNING, "Failed to load permissions", e);
+            log.warn("Failed to load permissions", e);
         } finally {
             try {
                 if (buff != null) {
@@ -159,12 +160,12 @@ public class FlatFilePermissionsResolver implements PermissionsResolver {
                         }
                     }
 
-                    userPermissionsCache.put(key.toLowerCase(), permsCache);
-                    userGroups.put(key.toLowerCase(), new HashSet<>(Arrays.asList(groups)));
+                    userPermissionsCache.put(key.toLowerCase(Locale.ROOT), permsCache);
+                    userGroups.put(key.toLowerCase(Locale.ROOT), new HashSet<>(Arrays.asList(groups)));
                 }
             }
         } catch (IOException e) {
-            log.log(Level.WARNING, "Failed to load permissions", e);
+            log.warn("Failed to load permissions", e);
         } finally {
             try {
                 if (buff != null) {
@@ -184,7 +185,7 @@ public class FlatFilePermissionsResolver implements PermissionsResolver {
             }
         }
 
-        Set<String> perms = userPermissionsCache.get(player.toLowerCase());
+        Set<String> perms = userPermissionsCache.get(player.toLowerCase(Locale.ROOT));
         if (perms == null) {
             return defaultPermissionsCache.contains(permission)
                     || defaultPermissionsCache.contains("*");
@@ -201,13 +202,13 @@ public class FlatFilePermissionsResolver implements PermissionsResolver {
 
     @Override
     public boolean inGroup(String player, String group) {
-        Set<String> groups = userGroups.get(player.toLowerCase());
+        Set<String> groups = userGroups.get(player.toLowerCase(Locale.ROOT));
         return groups != null && groups.contains(group);
     }
 
     @Override
     public String[] getGroups(String player) {
-        Set<String> groups = userGroups.get(player.toLowerCase());
+        Set<String> groups = userGroups.get(player.toLowerCase(Locale.ROOT));
         if (groups == null) {
             return new String[0];
         }

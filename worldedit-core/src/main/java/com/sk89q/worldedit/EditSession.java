@@ -19,12 +19,6 @@
 
 package com.sk89q.worldedit;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.sk89q.worldedit.regions.Regions.asFlatRegion;
-import static com.sk89q.worldedit.regions.Regions.maximumBlockY;
-import static com.sk89q.worldedit.regions.Regions.minimumBlockY;
-
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.event.extent.EditSessionEvent;
@@ -50,8 +44,10 @@ import com.sk89q.worldedit.function.block.BlockDistributionCounter;
 import com.sk89q.worldedit.function.block.BlockReplace;
 import com.sk89q.worldedit.function.block.Counter;
 import com.sk89q.worldedit.function.block.Naturalizer;
+import com.sk89q.worldedit.function.generator.ForestGenerator;
 import com.sk89q.worldedit.function.generator.GardenPatchGenerator;
 import com.sk89q.worldedit.function.mask.BlockMask;
+import com.sk89q.worldedit.function.mask.BlockStateMask;
 import com.sk89q.worldedit.function.mask.BlockTypeMask;
 import com.sk89q.worldedit.function.mask.BoundedHeightMask;
 import com.sk89q.worldedit.function.mask.ExistingBlockMask;
@@ -68,6 +64,7 @@ import com.sk89q.worldedit.function.operation.OperationQueue;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.pattern.BlockPattern;
 import com.sk89q.worldedit.function.pattern.Pattern;
+import com.sk89q.worldedit.function.pattern.WaterloggedRemover;
 import com.sk89q.worldedit.function.util.RegionOffset;
 import com.sk89q.worldedit.function.visitor.DownwardVisitor;
 import com.sk89q.worldedit.function.visitor.LayerVisitor;
@@ -79,6 +76,7 @@ import com.sk89q.worldedit.history.changeset.BlockOptimizedHistory;
 import com.sk89q.worldedit.history.changeset.ChangeSet;
 import com.sk89q.worldedit.internal.expression.Expression;
 import com.sk89q.worldedit.internal.expression.ExpressionException;
+import com.sk89q.worldedit.internal.expression.runtime.ExpressionTimeoutException;
 import com.sk89q.worldedit.internal.expression.runtime.RValue;
 import com.sk89q.worldedit.math.BlockVector2;
 import com.sk89q.worldedit.math.BlockVector3;
@@ -106,7 +104,7 @@ import com.sk89q.worldedit.util.collection.DoubleArrayList;
 import com.sk89q.worldedit.util.eventbus.EventBus;
 import com.sk89q.worldedit.world.NullWorld;
 import com.sk89q.worldedit.world.World;
-import com.sk89q.worldedit.world.biome.BaseBiome;
+import com.sk89q.worldedit.world.biome.BiomeType;
 import com.sk89q.worldedit.world.block.BaseBlock;
 import com.sk89q.worldedit.world.block.BlockCategories;
 import com.sk89q.worldedit.world.block.BlockState;
@@ -114,18 +112,23 @@ import com.sk89q.worldedit.world.block.BlockStateHolder;
 import com.sk89q.worldedit.world.block.BlockType;
 import com.sk89q.worldedit.world.block.BlockTypes;
 import com.sk89q.worldedit.world.registry.LegacyMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-import javax.annotation.Nullable;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.sk89q.worldedit.regions.Regions.asFlatRegion;
+import static com.sk89q.worldedit.regions.Regions.maximumBlockY;
+import static com.sk89q.worldedit.regions.Regions.minimumBlockY;
 
 /**
  * An {@link Extent} that handles history, {@link BlockBag}s, change limits,
@@ -138,7 +141,7 @@ import javax.annotation.Nullable;
 @SuppressWarnings({"FieldCanBeLocal"})
 public class EditSession implements Extent, AutoCloseable {
 
-    private static final Logger log = Logger.getLogger(EditSession.class.getCanonicalName());
+    private static final Logger log = LoggerFactory.getLogger(EditSession.class);
 
     /**
      * Used by {@link EditSession#setBlock(BlockVector3, BlockStateHolder, Stage)} to
@@ -170,15 +173,6 @@ public class EditSession implements Extent, AutoCloseable {
 
         public String getDisplayName() {
             return this.displayName;
-        }
-
-        public static Optional<ReorderMode> getFromDisplayName(String name) {
-            for (ReorderMode mode : values()) {
-                if (mode.getDisplayName().equalsIgnoreCase(name)) {
-                    return Optional.of(mode);
-                }
-            }
-            return Optional.empty();
         }
     }
 
@@ -562,12 +556,12 @@ public class EditSession implements Extent, AutoCloseable {
     }
 
     @Override
-    public BaseBiome getBiome(BlockVector2 position) {
+    public BiomeType getBiome(BlockVector2 position) {
         return bypassNone.getBiome(position);
     }
 
     @Override
-    public boolean setBiome(BlockVector2 position, BaseBiome biome) {
+    public boolean setBiome(BlockVector2 position, BiomeType biome) {
         return bypassNone.setBiome(position, biome);
     }
 
@@ -591,10 +585,25 @@ public class EditSession implements Extent, AutoCloseable {
      * @return height of highest block found or 'minY'
      */
     public int getHighestTerrainBlock(int x, int z, int minY, int maxY) {
+        return getHighestTerrainBlock(x, z, minY, maxY, null);
+    }
+
+    /**
+     * Returns the highest solid 'terrain' block.
+     *
+     * @param x the X coordinate
+     * @param z the Z coordinate
+     * @param minY minimal height
+     * @param maxY maximal height
+     * @param filter a mask of blocks to consider, or null to consider any solid (movement-blocking) block
+     * @return height of highest block found or 'minY'
+     */
+    public int getHighestTerrainBlock(int x, int z, int minY, int maxY, Mask filter) {
         for (int y = maxY; y >= minY; --y) {
             BlockVector3 pt = BlockVector3.at(x, y, z);
-            BlockState block = getBlock(pt);
-            if (block.getBlockType().getMaterial().isMovementBlocker()) {
+            if (filter == null
+                    ? getBlock(pt).getBlockType().getMaterial().isMovementBlocker()
+                    : filter.test(pt)) {
                 return y;
             }
         }
@@ -898,16 +907,15 @@ public class EditSession implements Extent, AutoCloseable {
      * Remove blocks of a certain type nearby a given position.
      *
      * @param position center position of cuboid
-     * @param blockType the block type to match
+     * @param mask the mask to match
      * @param apothem an apothem of the cuboid, where the minimum is 1
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
-    public int removeNear(BlockVector3 position, BlockType blockType, int apothem) throws MaxChangedBlocksException {
+    public int removeNear(BlockVector3 position, Mask mask, int apothem) throws MaxChangedBlocksException {
         checkNotNull(position);
         checkArgument(apothem >= 1, "apothem >= 1");
 
-        Mask mask = new BlockTypeMask(this, blockType);
         BlockVector3 adjustment = BlockVector3.ONE.multiply(apothem - 1);
         Region region = new CuboidRegion(
                 getWorld(), // Causes clamping of Y range
@@ -1166,7 +1174,7 @@ public class EditSession implements Extent, AutoCloseable {
         checkNotNull(pattern);
 
         BlockReplace replace = new BlockReplace(this, pattern);
-        RegionOffset offset = new RegionOffset(BlockVector3.at(0, 1, 0), replace);
+        RegionOffset offset = new RegionOffset(BlockVector3.UNIT_Y, replace);
         GroundFunction ground = new GroundFunction(new ExistingBlockMask(this), offset);
         LayerVisitor visitor = new LayerVisitor(asFlatRegion(region), minimumBlockY(region), maximumBlockY(region), ground);
         Operations.completeLegacy(visitor);
@@ -1237,7 +1245,7 @@ public class EditSession implements Extent, AutoCloseable {
         BlockVector3 to = region.getMinimumPoint();
 
         // Remove the original blocks
-        com.sk89q.worldedit.function.pattern.Pattern pattern = replacement != null ?
+        Pattern pattern = replacement != null ?
                 replacement :
                 new BlockPattern(BlockTypes.AIR.getDefaultState());
         BlockReplace remove = new BlockReplace(this, pattern);
@@ -1286,15 +1294,38 @@ public class EditSession implements Extent, AutoCloseable {
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
     public int drainArea(BlockVector3 origin, double radius) throws MaxChangedBlocksException {
+        return drainArea(origin, radius, false);
+    }
+
+    /**
+     * Drain nearby pools of water or lava, optionally removed waterlogged states from blocks.
+     *
+     * @param origin the origin to drain from, which will search a 3x3 area
+     * @param radius the radius of the removal, where a value should be 0 or greater
+     * @param waterlogged true to make waterlogged blocks non-waterlogged as well
+     * @return number of blocks affected
+     * @throws MaxChangedBlocksException thrown if too many blocks are changed
+     */
+    public int drainArea(BlockVector3 origin, double radius, boolean waterlogged) throws MaxChangedBlocksException {
         checkNotNull(origin);
         checkArgument(radius >= 0, "radius >= 0 required");
 
         MaskIntersection mask = new MaskIntersection(
                 new BoundedHeightMask(0, getWorld().getMaxY()),
                 new RegionMask(new EllipsoidRegion(null, origin, Vector3.at(radius, radius, radius))),
-                getWorld().createLiquidMask());
+                waterlogged ? new MaskUnion(
+                                getWorld().createLiquidMask(),
+                                new BlockStateMask(this, new HashMap<String, String>() {{
+                                    put("waterlogged", "true");
+                                }}, true))
+                            : getWorld().createLiquidMask());
 
-        BlockReplace replace = new BlockReplace(this, new BlockPattern(BlockTypes.AIR.getDefaultState()));
+        BlockReplace replace;
+        if (waterlogged) {
+            replace = new BlockReplace(this, new WaterloggedRemover(this));
+        } else {
+            replace = new BlockReplace(this, new BlockPattern(BlockTypes.AIR.getDefaultState()));
+        }
         RecursiveVisitor visitor = new RecursiveVisitor(mask, replace);
 
         // Around the origin in a 3x3 block
@@ -1794,38 +1825,25 @@ public class EditSession implements Extent, AutoCloseable {
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
     public int makeForest(BlockVector3 basePosition, int size, double density, TreeGenerator.TreeType treeType) throws MaxChangedBlocksException {
-        int affected = 0;
+        return makeForest(CuboidRegion.fromCenter(basePosition, size), density, treeType);
+    }
 
-        for (int x = basePosition.getBlockX() - size; x <= basePosition.getBlockX()
-                + size; ++x) {
-            for (int z = basePosition.getBlockZ() - size; z <= basePosition.getBlockZ()
-                    + size; ++z) {
-                // Don't want to be in the ground
-                if (!getBlock(BlockVector3.at(x, basePosition.getBlockY(), z)).getBlockType().getMaterial().isAir()) {
-                    continue;
-                }
-                // The gods don't want a tree here
-                if (Math.random() >= density) {
-                    continue;
-                } // def 0.05
-
-                for (int y = basePosition.getBlockY(); y >= basePosition.getBlockY() - 10; --y) {
-                    // Check if we hit the ground
-                    BlockType t = getBlock(BlockVector3.at(x, y, z)).getBlockType();
-                    if (t == BlockTypes.GRASS_BLOCK || t == BlockTypes.DIRT) {
-                        treeType.generate(this, BlockVector3.at(x, y + 1, z));
-                        ++affected;
-                        break;
-                    } else if (t == BlockTypes.SNOW) {
-                        setBlock(BlockVector3.at(x, y, z), BlockTypes.AIR.getDefaultState());
-                    } else if (!t.getMaterial().isAir()) { // Trees won't grow on this!
-                        break;
-                    }
-                }
-            }
-        }
-
-        return affected;
+    /**
+     * Makes a forest.
+     *
+     * @param region the region to generate trees in
+     * @param density between 0 and 1, inclusive
+     * @param treeType the tree type
+     * @return number of trees created
+     * @throws MaxChangedBlocksException thrown if too many blocks are changed
+     */
+    public int makeForest(Region region, double density, TreeGenerator.TreeType treeType) throws MaxChangedBlocksException {
+        ForestGenerator generator = new ForestGenerator(this, treeType);
+        GroundFunction ground = new GroundFunction(new ExistingBlockMask(this), generator);
+        LayerVisitor visitor = new LayerVisitor(asFlatRegion(region), minimumBlockY(region), maximumBlockY(region), ground);
+        visitor.setMask(new NoiseFilter2D(new RandomNoise(), density));
+        Operations.completeLegacy(visitor);
+        return ground.getAffected();
     }
 
     /**
@@ -1841,7 +1859,42 @@ public class EditSession implements Extent, AutoCloseable {
         return count.getDistribution();
     }
 
-    public int makeShape(final Region region, final Vector3 zero, final Vector3 unit, final Pattern pattern, final String expressionString, final boolean hollow) throws ExpressionException, MaxChangedBlocksException {
+    /**
+     * Generate a shape for the given expression.
+     *
+     * @param region the region to generate the shape in
+     * @param zero the coordinate origin for x/y/z variables
+     * @param unit the scale of the x/y/z/ variables
+     * @param pattern the default material to make the shape from
+     * @param expressionString the expression defining the shape
+     * @param hollow whether the shape should be hollow
+     * @return number of blocks changed
+     * @throws ExpressionException
+     * @throws MaxChangedBlocksException
+     */
+    public int makeShape(final Region region, final Vector3 zero, final Vector3 unit,
+                         final Pattern pattern, final String expressionString, final boolean hollow)
+            throws ExpressionException, MaxChangedBlocksException {
+        return makeShape(region, zero, unit, pattern, expressionString, hollow, WorldEdit.getInstance().getConfiguration().calculationTimeout);
+    }
+
+    /**
+     * Generate a shape for the given expression.
+     *
+     * @param region the region to generate the shape in
+     * @param zero the coordinate origin for x/y/z variables
+     * @param unit the scale of the x/y/z/ variables
+     * @param pattern the default material to make the shape from
+     * @param expressionString the expression defining the shape
+     * @param hollow whether the shape should be hollow
+     * @param timeout the time, in milliseconds, to wait for each expression evaluation before halting it. -1 to disable
+     * @return number of blocks changed
+     * @throws ExpressionException
+     * @throws MaxChangedBlocksException
+     */
+    public int makeShape(final Region region, final Vector3 zero, final Vector3 unit,
+                        final Pattern pattern, final String expressionString, final boolean hollow, final int timeout)
+            throws ExpressionException, MaxChangedBlocksException {
         final Expression expression = Expression.compile(expressionString, "x", "y", "z", "type", "data");
         expression.optimize();
 
@@ -1851,6 +1904,7 @@ public class EditSession implements Extent, AutoCloseable {
         final WorldEditExpressionEnvironment environment = new WorldEditExpressionEnvironment(this, unit, zero);
         expression.setEnvironment(environment);
 
+        final int[] timedOut = {0};
         final ArbitraryShape shape = new ArbitraryShape(region) {
             @Override
             protected BaseBlock getMaterial(int x, int y, int z, BaseBlock defaultMaterial) {
@@ -1859,23 +1913,51 @@ public class EditSession implements Extent, AutoCloseable {
                 final Vector3 scaled = current.subtract(zero).divide(unit);
 
                 try {
-                    if (expression.evaluate(scaled.getX(), scaled.getY(), scaled.getZ(), defaultMaterial.getBlockType().getLegacyId(), 0) <= 0) {
-                        // TODO data
+                    int[] legacy = LegacyMapper.getInstance().getLegacyFromBlock(defaultMaterial.toImmutableState());
+                    int typeVar = 0;
+                    int dataVar = 0;
+                    if (legacy != null) {
+                        typeVar = legacy[0];
+                        if (legacy.length > 1) {
+                            dataVar = legacy[1];
+                        }
+                    }
+                    if (expression.evaluate(new double[]{scaled.getX(), scaled.getY(), scaled.getZ(), typeVar, dataVar}, timeout) <= 0) {
                         return null;
                     }
-
-                    return LegacyMapper.getInstance().getBlockFromLegacy((int) typeVariable.getValue(), (int) dataVariable.getValue()).toBaseBlock();
+                    int newType = (int) typeVariable.getValue();
+                    int newData = (int) dataVariable.getValue();
+                    if (newType != typeVar || newData != dataVar) {
+                        BlockState state = LegacyMapper.getInstance().getBlockFromLegacy(newType, newData);
+                        return state == null ? defaultMaterial : state.toBaseBlock();
+                    } else {
+                        return defaultMaterial;
+                    }
+                } catch (ExpressionTimeoutException e) {
+                    timedOut[0] = timedOut[0] + 1;
+                    return null;
                 } catch (Exception e) {
-                    log.log(Level.WARNING, "Failed to create shape", e);
+                    log.warn("Failed to create shape", e);
                     return null;
                 }
             }
         };
-
-        return shape.generate(this, pattern, hollow);
+        int changed = shape.generate(this, pattern, hollow);
+        if (timedOut[0] > 0) {
+            throw new ExpressionTimeoutException(
+                    String.format("%d blocks changed. %d blocks took too long to evaluate (increase with //timeout).",
+                            changed, timedOut[0]));
+        }
+        return changed;
     }
 
-    public int deformRegion(final Region region, final Vector3 zero, final Vector3 unit, final String expressionString) throws ExpressionException, MaxChangedBlocksException {
+    public int deformRegion(final Region region, final Vector3 zero, final Vector3 unit, final String expressionString)
+            throws ExpressionException, MaxChangedBlocksException {
+        return deformRegion(region, zero, unit, expressionString, WorldEdit.getInstance().getConfiguration().calculationTimeout);
+    }
+
+    public int deformRegion(final Region region, final Vector3 zero, final Vector3 unit, final String expressionString,
+                            final int timeout) throws ExpressionException, MaxChangedBlocksException {
         final Expression expression = Expression.compile(expressionString, "x", "y", "z");
         expression.optimize();
 
@@ -1893,7 +1975,7 @@ public class EditSession implements Extent, AutoCloseable {
             final Vector3 scaled = position.toVector3().subtract(zero).divide(unit);
 
             // transform
-            expression.evaluate(scaled.getX(), scaled.getY(), scaled.getZ());
+            expression.evaluate(new double[]{scaled.getX(), scaled.getY(), scaled.getZ()}, timeout);
 
             final BlockVector3 sourcePosition = environment.toWorld(x.getValue(), y.getValue(), z.getValue());
 
@@ -2080,7 +2162,8 @@ public class EditSession implements Extent, AutoCloseable {
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
-    public int drawSpline(Pattern pattern, List<BlockVector3> nodevectors, double tension, double bias, double continuity, double quality, double radius, boolean filled)
+    public int drawSpline(Pattern pattern, List<BlockVector3> nodevectors, double tension, double bias,
+                          double continuity, double quality, double radius, boolean filled)
             throws MaxChangedBlocksException {
 
         Set<BlockVector3> vset = new HashSet<>();
@@ -2180,7 +2263,15 @@ public class EditSession implements Extent, AutoCloseable {
         }
     }
 
-    public int makeBiomeShape(final Region region, final Vector3 zero, final Vector3 unit, final BaseBiome biomeType, final String expressionString, final boolean hollow) throws ExpressionException, MaxChangedBlocksException {
+    public int makeBiomeShape(final Region region, final Vector3 zero, final Vector3 unit, final BiomeType biomeType,
+                              final String expressionString, final boolean hollow)
+            throws ExpressionException, MaxChangedBlocksException {
+        return makeBiomeShape(region, zero, unit, biomeType, expressionString, hollow, WorldEdit.getInstance().getConfiguration().calculationTimeout);
+    }
+
+    public int makeBiomeShape(final Region region, final Vector3 zero, final Vector3 unit, final BiomeType biomeType,
+                              final String expressionString, final boolean hollow, final int timeout)
+            throws ExpressionException, MaxChangedBlocksException {
         final Vector2 zero2D = zero.toVector2();
         final Vector2 unit2D = unit.toVector2();
 
@@ -2191,28 +2282,37 @@ public class EditSession implements Extent, AutoCloseable {
         final WorldEditExpressionEnvironment environment = new WorldEditExpressionEnvironment(editSession, unit, zero);
         expression.setEnvironment(environment);
 
+        final int[] timedOut = {0};
         final ArbitraryBiomeShape shape = new ArbitraryBiomeShape(region) {
             @Override
-            protected BaseBiome getBiome(int x, int z, BaseBiome defaultBiomeType) {
+            protected BiomeType getBiome(int x, int z, BiomeType defaultBiomeType) {
                 final Vector2 current = Vector2.at(x, z);
                 environment.setCurrentBlock(current.toVector3(0));
                 final Vector2 scaled = current.subtract(zero2D).divide(unit2D);
 
                 try {
-                    if (expression.evaluate(scaled.getX(), scaled.getZ()) <= 0) {
-                        return null; // TODO should return OUTSIDE? seems to cause issues otherwise, workedaround for now
+                    if (expression.evaluate(new double[]{scaled.getX(), scaled.getZ()}, timeout) <= 0) {
+                        return null;
                     }
 
                     // TODO: Allow biome setting via a script variable (needs BiomeType<->int mapping)
                     return defaultBiomeType;
+                } catch (ExpressionTimeoutException e) {
+                    timedOut[0] = timedOut[0] + 1;
+                    return null;
                 } catch (Exception e) {
-                    log.log(Level.WARNING, "Failed to create shape", e);
+                    log.warn("Failed to create shape", e);
                     return null;
                 }
             }
         };
-
-        return shape.generate(this, biomeType, hollow);
+        int changed = shape.generate(this, biomeType, hollow);
+        if (timedOut[0] > 0) {
+            throw new ExpressionTimeoutException(
+                    String.format("%d blocks changed. %d blocks took too long to evaluate (increase time with //timeout)",
+                            changed, timedOut[0]));
+        }
+        return changed;
     }
 
     private static final BlockVector3[] recurseDirections = {

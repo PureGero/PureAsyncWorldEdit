@@ -7,20 +7,19 @@ buildscript {
 
     configurations.all {
         resolutionStrategy {
-            force 'com.google.guava:guava:21.0'
-            force 'org.ow2.asm:asm:6.0_BETA'
+            force 'commons-io:commons-io:2.4'
         }
     }
 
     dependencies {
         classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
-        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.7.5'
-        classpath 'org.ajoberstar:gradle-git:1.7.2'
+        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.8.1'
     }
 }
 
 plugins {
     id 'net.minecrell.licenser' version '0.4.1' apply false
+    id "org.ajoberstar.grgit" version "2.3.0"
 }
 
 println """
@@ -48,7 +47,7 @@ if (!project.hasProperty("artifactory_password")) ext.artifactory_password = ""
 
 if (!project.hasProperty("gitCommitHash") && !JavaVersion.current().isJava6()) {
     try {
-        def repo = org.ajoberstar.grgit.Grgit.open(dir: '.')
+        def repo = grgit.open()
         ext.gitCommitHash = repo.head().abbreviatedId
     } catch (Exception e) {
         println "Error getting commit hash: " + e.getMessage()
@@ -70,19 +69,23 @@ artifactory {
             ivy = false
         }
     }
-
-    resolve {
-        repository {
-            repoKey = 'repo'
-            username = "${artifactory_user}"
-            password = "${artifactory_password}"
-            maven = true
-        }
-    }
 }
 artifactoryPublish.skip = true
 
 subprojects {
+    repositories {
+        mavenCentral()
+        maven { url "http://maven.sk89q.com/repo/" }
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+    }
+    configurations.all {
+        resolutionStrategy {
+            cacheChangingModulesFor 5, 'minutes'
+        }
+    }
+}
+
+configure(['core', 'bukkit', 'forge', 'sponge'].collect { project(":worldedit-$it") }) {
     apply plugin: 'java'
     apply plugin: 'maven'
     apply plugin: 'checkstyle'
@@ -97,13 +100,6 @@ subprojects {
 
     checkstyle.configFile = new File(rootProject.projectDir, "config/checkstyle/checkstyle.xml")
     checkstyle.toolVersion = '7.6.1'
-
-    repositories {
-        mavenCentral()
-        maven { url "http://repo.bukkit.org/content/groups/public" }
-        maven { url "http://maven.sk89q.com/repo/" }
-        maven { url "http://repo.maven.apache.org/maven2" }
-    }
 
     if (JavaVersion.current().isJava8Compatible()) {
         // Java 8 turns on doclint which we fail
@@ -138,18 +134,6 @@ subprojects {
     build.dependsOn(checkstyleTest)
     build.dependsOn(javadocJar)
 
-    shadowJar {
-        classifier 'dist'
-        dependencies {
-            include(dependency('com.sk89q:jchronic:0.2.4a'))
-            include(dependency('com.thoughtworks.paranamer:paranamer:2.6'))
-            include(dependency('com.sk89q.lib:jlibnoise:1.0.0'))
-        }
-        exclude 'GradleStart**'
-        exclude '.cache'
-        exclude 'LICENSE*'
-    }
-
     artifactoryPublish {
         publishConfigs('archives')
     }
@@ -157,5 +141,19 @@ subprojects {
     license {
         header = rootProject.file("HEADER.txt")
         include '**/*.java'
+    }
+}
+
+configure(['bukkit', 'forge', 'sponge'].collect { project(":worldedit-$it") }) {
+    shadowJar {
+        classifier 'dist'
+        dependencies {
+            include(project(":worldedit-libs:core"))
+            include(project(":worldedit-libs:${project.name.replace("worldedit-", "")}"))
+            include(project(":worldedit-core"))
+        }
+        exclude 'GradleStart**'
+        exclude '.cache'
+        exclude 'LICENSE*'
     }
 }

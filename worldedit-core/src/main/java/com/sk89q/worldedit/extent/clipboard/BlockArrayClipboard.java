@@ -29,7 +29,8 @@ import com.sk89q.worldedit.math.BlockVector2;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.Location;
-import com.sk89q.worldedit.world.biome.BaseBiome;
+import com.sk89q.worldedit.world.biome.BiomeType;
+import com.sk89q.worldedit.world.biome.BiomeTypes;
 import com.sk89q.worldedit.world.block.BaseBlock;
 import com.sk89q.worldedit.world.block.BlockState;
 import com.sk89q.worldedit.world.block.BlockStateHolder;
@@ -50,6 +51,7 @@ public class BlockArrayClipboard implements Clipboard {
     private final Region region;
     private BlockVector3 origin;
     private final BaseBlock[][][] blocks;
+    private BiomeType[][] biomes = null;
     private final List<ClipboardEntity> entities = new ArrayList<>();
 
     /**
@@ -160,12 +162,34 @@ public class BlockArrayClipboard implements Clipboard {
     }
 
     @Override
-    public BaseBiome getBiome(BlockVector2 position) {
-        return new BaseBiome(0);
+    public boolean hasBiomes() {
+        return biomes != null;
     }
 
     @Override
-    public boolean setBiome(BlockVector2 position, BaseBiome biome) {
+    public BiomeType getBiome(BlockVector2 position) {
+        if (biomes != null
+                && position.containedWithin(getMinimumPoint().toBlockVector2(), getMaximumPoint().toBlockVector2())) {
+            BlockVector2 v = position.subtract(region.getMinimumPoint().toBlockVector2());
+            BiomeType biomeType = biomes[v.getBlockX()][v.getBlockZ()];
+            if (biomeType != null) {
+                return biomeType;
+            }
+        }
+
+        return BiomeTypes.OCEAN;
+    }
+
+    @Override
+    public boolean setBiome(BlockVector2 position, BiomeType biome) {
+        if (position.containedWithin(getMinimumPoint().toBlockVector2(), getMaximumPoint().toBlockVector2())) {
+            BlockVector2 v = position.subtract(region.getMinimumPoint().toBlockVector2());
+            if (biomes == null) {
+                biomes = new BiomeType[region.getWidth()][region.getLength()];
+            }
+            biomes[v.getBlockX()][v.getBlockZ()] = biome;
+            return true;
+        }
         return false;
     }
 

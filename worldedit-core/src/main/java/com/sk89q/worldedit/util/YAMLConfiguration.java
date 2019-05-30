@@ -26,11 +26,10 @@ import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.session.SessionManager;
 import com.sk89q.worldedit.util.report.Unreported;
 import com.sk89q.worldedit.world.snapshot.SnapshotRepository;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * A less simple implementation of {@link LocalConfiguration}
@@ -51,7 +50,7 @@ public class YAMLConfiguration extends LocalConfiguration {
         try {
             config.load();
         } catch (IOException e) {
-            logger.log(Level.WARNING, "Error loading WorldEdit configuration", e);
+            logger.warn("Error loading WorldEdit configuration", e);
         }
 
         profile = config.getBoolean("debug", profile);
@@ -79,7 +78,7 @@ public class YAMLConfiguration extends LocalConfiguration {
         butcherDefaultRadius = Math.max(-1, config.getInt("limits.butcher-radius.default", butcherDefaultRadius));
         butcherMaxRadius = Math.max(-1, config.getInt("limits.butcher-radius.maximum", butcherMaxRadius));
 
-        disallowedBlocks = new HashSet<>(config.getStringList("limits.disallowed-blocks", Lists.newArrayList(defaultDisallowedBlocks)));
+        disallowedBlocks = new HashSet<>(config.getStringList("limits.disallowed-blocks", Lists.newArrayList(getDefaultDisallowedBlocks())));
         allowedDataCycleBlocks = new HashSet<>(config.getStringList("limits.allowed-data-cycle-blocks", null));
 
         registerHelp = config.getBoolean("register-help", true);
@@ -91,8 +90,6 @@ public class YAMLConfiguration extends LocalConfiguration {
                 superPickaxeDrop);
         superPickaxeManyDrop = config.getBoolean(
                 "super-pickaxe.many-drop-items", superPickaxeManyDrop);
-
-        noDoubleSlash = config.getBoolean("no-double-slash", noDoubleSlash);
 
         useInventory = config.getBoolean("use-inventory.enable", useInventory);
         useInventoryOverride = config.getBoolean("use-inventory.allow-override",
@@ -108,6 +105,7 @@ public class YAMLConfiguration extends LocalConfiguration {
         scriptsDir = config.getString("scripting.dir", scriptsDir);
 
         calculationTimeout = config.getInt("calculation.timeout", calculationTimeout);
+        maxCalculationTimeout = config.getInt("calculation.max-timeout", maxCalculationTimeout);
 
         saveDir = config.getString("saving.dir", saveDir);
 

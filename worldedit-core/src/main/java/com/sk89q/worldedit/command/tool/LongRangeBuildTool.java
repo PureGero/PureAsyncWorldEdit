@@ -26,6 +26,7 @@ import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extension.platform.Platform;
+import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.util.Location;
@@ -61,7 +62,7 @@ public class LongRangeBuildTool extends BrushTool implements DoubleActionTraceTo
             if (applied.getBlockType().getMaterial().isAir()) {
                 eS.setBlock(blockPoint, secondary);
             } else {
-                eS.setBlock(pos.getDirection().toBlockPoint(), secondary);
+                eS.setBlock(pos.toVector().subtract(pos.getDirection()).toBlockPoint(), secondary);
             }
             return true;
         } catch (MaxChangedBlocksException e) {
@@ -82,7 +83,7 @@ public class LongRangeBuildTool extends BrushTool implements DoubleActionTraceTo
             if (applied.getBlockType().getMaterial().isAir()) {
                 eS.setBlock(blockPoint, primary);
             } else {
-                eS.setBlock(pos.getDirection().toBlockPoint(), primary);
+                eS.setBlock(pos.toVector().subtract(pos.getDirection()).toBlockPoint(), primary);
             }
             return true;
         } catch (MaxChangedBlocksException e) {
@@ -91,8 +92,14 @@ public class LongRangeBuildTool extends BrushTool implements DoubleActionTraceTo
         return false;
     }
 
-    public Location getTargetFace(Player player) {
-        Location target = player.getBlockTraceFace(getRange(), true);
+    private Location getTargetFace(Player player) {
+        Location target;
+        Mask mask = getTraceMask();
+        if (this.range > -1) {
+            target = player.getBlockTrace(getRange(), true, mask);
+        } else {
+            target = player.getBlockTrace(MAX_RANGE, false, mask);
+        }
 
         if (target == null) {
             player.printError("No block in sight!");

@@ -19,21 +19,16 @@
 
 package com.sk89q.worldedit.util.paste;
 
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.sk89q.worldedit.command.util.AsyncCommandHelper;
+import com.sk89q.worldedit.command.util.AsyncCommandBuilder;
 import com.sk89q.worldedit.extension.platform.Actor;
-import com.sk89q.worldedit.util.command.parametric.ExceptionConverter;
 import com.sk89q.worldedit.util.task.Supervisor;
 
 import java.net.URL;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.concurrent.Callable;
 
-public class ActorCallbackPaste {
+public final class ActorCallbackPaste {
 
-    private static final Logger LOGGER = Logger.getLogger(ActorCallbackPaste.class.getSimpleName());
+    private static final Paster paster = new EngineHubPaste();
 
     private ActorCallbackPaste() {
     }
@@ -47,25 +42,15 @@ public class ActorCallbackPaste {
      * @param content The content
      * @param successMessage The message, formatted with {@link String#format(String, Object...)} on success
      */
-    public static void pastebin(Supervisor supervisor, final Actor sender, String content, final String successMessage, final ExceptionConverter exceptionConverter) {
-        ListenableFuture<URL> future = new EngineHubPaste().paste(content);
+    public static void pastebin(Supervisor supervisor, final Actor sender, String content, final String successMessage) {
+        Callable<URL> task = paster.paste(content);
 
-        AsyncCommandHelper.wrap(future, supervisor, sender, exceptionConverter)
-                .registerWithSupervisor("Submitting content to a pastebin service...")
-                .sendMessageAfterDelay("(Please wait... sending output to pastebin...)");
-
-        Futures.addCallback(future, new FutureCallback<URL>() {
-            @Override
-            public void onSuccess(URL url) {
-                sender.print(String.format(successMessage, url));
-            }
-
-            @Override
-            public void onFailure(Throwable throwable) {
-                LOGGER.log(Level.WARNING, "Failed to submit pastebin", throwable);
-                sender.printError("Failed to submit to a pastebin. Please see console for the error.");
-            }
-        });
+        AsyncCommandBuilder.wrap(task, sender)
+                .registerWithSupervisor(supervisor, "Submitting content to a pastebin service.")
+                .sendMessageAfterDelay("(Please wait... sending output to pastebin...)")
+                .onSuccess((String) null, url -> sender.print(String.format(successMessage, url)))
+                .onFailure("Failed to submit paste", null)
+                .buildAndExec(Pasters.getExecutor());
     }
 
 }

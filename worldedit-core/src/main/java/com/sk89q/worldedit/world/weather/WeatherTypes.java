@@ -21,7 +21,7 @@ package com.sk89q.worldedit.world.weather;
 
 import javax.annotation.Nullable;
 
-public class WeatherTypes {
+public final class WeatherTypes {
 
     public static final WeatherType CLEAR = register("clear");
     public static final WeatherType RAIN = register("rain");
@@ -30,15 +30,16 @@ public class WeatherTypes {
     private WeatherTypes() {
     }
 
-    private static WeatherType register(final String id) {
+    private static WeatherType register(String id) {
         return register(new WeatherType(id));
     }
 
-    public static WeatherType register(final WeatherType weatherType) {
-        return WeatherType.REGISTRY.register(weatherType.getId(), weatherType);
+    public static WeatherType register(WeatherType weather) {
+        return WeatherType.REGISTRY.register(weather.getId(), weather);
     }
 
-    public static @Nullable WeatherType get(final String id) {
+    @Nullable
+    public static WeatherType get(final String id) {
         return WeatherType.REGISTRY.get(id);
     }
 }
