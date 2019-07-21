@@ -37,12 +37,9 @@ import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.enginehub.piston.CommandManager;
-import org.enginehub.piston.CommandParameters;
-import org.enginehub.piston.NoInputCommandParameters;
 import org.enginehub.piston.inject.InjectedValueStore;
 import org.enginehub.piston.inject.Key;
 import org.enginehub.piston.inject.MapBackedValueStore;
-import org.enginehub.piston.inject.MemoizingValueAccess;
 
 import java.util.Optional;
 
@@ -73,18 +70,15 @@ public class WorldEditListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
-    public void onPlayerCommand(PlayerCommandSendEvent event) {
+    public void onPlayerCommandSend(PlayerCommandSendEvent event) {
         InjectedValueStore store = MapBackedValueStore.create();
         store.injectValue(Key.of(Actor.class), context ->
             Optional.of(plugin.wrapCommandSender(event.getPlayer())));
-        CommandParameters parameters = NoInputCommandParameters.builder()
-            .injectedValues(MemoizingValueAccess.wrap(store))
-            .build();
         CommandManager commandManager = plugin.getWorldEdit().getPlatformManager().getPlatformCommandManager().getCommandManager();
         event.getCommands().removeIf(name ->
             // remove if in the manager and not satisfied
             commandManager.getCommand(name)
-                .filter(command -> !command.getCondition().satisfied(parameters))
+                .filter(command -> !command.getCondition().satisfied(store))
                 .isPresent()
         );
     }

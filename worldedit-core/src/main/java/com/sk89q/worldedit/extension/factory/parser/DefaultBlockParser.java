@@ -41,6 +41,7 @@ import com.sk89q.worldedit.registry.state.Property;
 import com.sk89q.worldedit.util.HandSide;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.block.BaseBlock;
+import com.sk89q.worldedit.world.block.BlockCategories;
 import com.sk89q.worldedit.world.block.BlockState;
 import com.sk89q.worldedit.world.block.BlockType;
 import com.sk89q.worldedit.world.block.BlockTypes;
@@ -170,9 +171,9 @@ public class DefaultBlockParser extends InputParser<BaseBlock> {
                     Property<Object> propertyKey = (Property<Object>) type.getPropertyMap().get(parts[0]);
                     if (propertyKey == null) {
                         if (context.getActor() != null) {
-                            throw new NoMatchException("Unknown property " + parts[0] + " for block " + type.getName());
+                            throw new NoMatchException("Unknown property " + parts[0] + " for block " + type.getId());
                         } else {
-                            WorldEdit.logger.warn("Unknown property " + parts[0] + " for block " + type.getName());
+                            WorldEdit.logger.warn("Unknown property " + parts[0] + " for block " + type.getId());
                         }
                         return Maps.newHashMap();
                     }
@@ -345,7 +346,12 @@ public class DefaultBlockParser extends InputParser<BaseBlock> {
             }
         }
 
-        if (blockType == BlockTypes.SIGN || blockType == BlockTypes.WALL_SIGN) {
+        if (!context.isTryingLegacy()) {
+            return state.toBaseBlock();
+        }
+
+        if (blockType == BlockTypes.SIGN || blockType == BlockTypes.WALL_SIGN
+                || BlockCategories.SIGNS.contains(blockType)) {
             // Allow special sign text syntax
             String[] text = new String[4];
             text[0] = blockAndExtraData.length > 1 ? blockAndExtraData[1] : "";

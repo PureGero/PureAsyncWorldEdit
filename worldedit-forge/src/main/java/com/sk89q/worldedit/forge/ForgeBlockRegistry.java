@@ -20,19 +20,21 @@
 package com.sk89q.worldedit.forge;
 
 import com.sk89q.worldedit.registry.state.Property;
+import com.sk89q.worldedit.world.block.BlockState;
 import com.sk89q.worldedit.world.block.BlockType;
 import com.sk89q.worldedit.world.registry.BlockMaterial;
 import com.sk89q.worldedit.world.registry.BundledBlockRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.state.IProperty;
+import net.minecraftforge.fml.loading.FMLLoader;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.OptionalInt;
 import java.util.TreeMap;
-
-import javax.annotation.Nullable;
 
 public class ForgeBlockRegistry extends BundledBlockRegistry {
 
@@ -42,7 +44,7 @@ public class ForgeBlockRegistry extends BundledBlockRegistry {
     @Override
     public String getName(BlockType blockType) {
         Block block = ForgeAdapter.adapt(blockType);
-        if (block != null) {
+        if (block != null && FMLLoader.getDist().isClient()) {
             return block.getNameTextComponent().getFormattedText();
         } else {
             return super.getName(blockType);
@@ -72,4 +74,9 @@ public class ForgeBlockRegistry extends BundledBlockRegistry {
         return map;
     }
 
+    @Override
+    public OptionalInt getInternalBlockStateId(BlockState state) {
+        net.minecraft.block.BlockState equivalent = ForgeAdapter.adapt(state);
+        return OptionalInt.of(Block.getStateId(equivalent));
+    }
 }

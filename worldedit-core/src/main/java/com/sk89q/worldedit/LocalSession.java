@@ -28,6 +28,8 @@ import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.command.tool.BlockTool;
 import com.sk89q.worldedit.command.tool.BrushTool;
 import com.sk89q.worldedit.command.tool.InvalidToolBindException;
+import com.sk89q.worldedit.command.tool.NavigationWand;
+import com.sk89q.worldedit.command.tool.SelectionWand;
 import com.sk89q.worldedit.command.tool.SinglePickaxe;
 import com.sk89q.worldedit.command.tool.Tool;
 import com.sk89q.worldedit.entity.Player;
@@ -45,17 +47,20 @@ import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
 import com.sk89q.worldedit.regions.selector.RegionSelectorType;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.session.request.Request;
+import com.sk89q.worldedit.util.Countable;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.block.BaseBlock;
+import com.sk89q.worldedit.world.block.BlockState;
 import com.sk89q.worldedit.world.item.ItemType;
-import com.sk89q.worldedit.world.item.ItemTypes;
 import com.sk89q.worldedit.world.snapshot.Snapshot;
 
 import javax.annotation.Nullable;
 import java.time.ZoneId;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -67,11 +72,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class LocalSession {
 
-    public transient static int MAX_HISTORY_SIZE = 15;
+    public static transient int MAX_HISTORY_SIZE = 15;
 
     // Non-session related fields
     private transient LocalConfiguration config;
-    private transient final AtomicBoolean dirty = new AtomicBoolean();
+    private final transient AtomicBoolean dirty = new AtomicBoolean();
     private transient int failedCuiAttempts = 0;
 
     // Session related
@@ -80,7 +85,6 @@ public class LocalSession {
     private transient LinkedList<EditSession> history = new LinkedList<>();
     private transient int historyPointer = 0;
     private transient ClipboardHolder clipboard;
-    private transient boolean toolControl = true;
     private transient boolean superPickaxe = false;
     private transient BlockTool pickaxeMode = new SinglePickaxe();
     private transient Map<ItemType, Tool> tools = new HashMap<>();
@@ -95,11 +99,14 @@ public class LocalSession {
     private transient ZoneId timezone = ZoneId.systemDefault();
     private transient BlockVector3 cuiTemporaryBlock;
     private transient EditSession.ReorderMode reorderMode = EditSession.ReorderMode.MULTI_STAGE;
+    private transient List<Countable<BlockState>> lastDistribution;
 
     // Saved properties
     private String lastScript;
     private RegionSelectorType defaultSelector;
     private boolean useServerCUI = false; // Save this to not annoy players.
+    private String wandItem;
+    private String navWandItem;
 
     /**
      * Construct the object.
@@ -232,6 +239,9 @@ public class LocalSession {
                 newEditSession.enableStandardMode();
                 newEditSession.setReorderMode(reorderMode);
                 newEditSession.setFastMode(fastMode);
+                if (newEditSession.getSurvivalExtent() != null) {
+                    newEditSession.getSurvivalExtent().setStripNbt(!player.hasPermission("worldedit.setnbt"));
+                }
                 editSession.undo(newEditSession);
             }
             return editSession;
@@ -257,6 +267,9 @@ public class LocalSession {
                 newEditSession.enableStandardMode();
                 newEditSession.setReorderMode(reorderMode);
                 newEditSession.setFastMode(fastMode);
+                if (newEditSession.getSurvivalExtent() != null) {
+                    newEditSession.getSurvivalExtent().setStripNbt(!player.hasPermission("worldedit.setnbt"));
+                }
                 editSession.redo(newEditSession);
             }
             ++historyPointer;
@@ -381,21 +394,20 @@ public class LocalSession {
     }
 
     /**
-     * See if tool control is enabled.
-     *
-     * @return true if enabled
+     * @return true always - see deprecation notice
+     * @deprecated The wand is now a tool that can be bound/unbound.
      */
+    @Deprecated
     public boolean isToolControlEnabled() {
-        return toolControl;
+        return true;
     }
 
     /**
-     * Change tool control setting.
-     *
-     * @param toolControl true to enable tool control
+     * @param toolControl unused - see deprecation notice
+     * @deprecated The wand is now a tool that can be bound/unbound.
      */
+    @Deprecated
     public void setToolControl(boolean toolControl) {
-        this.toolControl = toolControl;
     }
 
     /**
@@ -588,10 +600,13 @@ public class LocalSession {
     public void setTool(ItemType item, @Nullable Tool tool) throws InvalidToolBindException {
         if (item.hasBlockType()) {
             throw new InvalidToolBindException(item, "Blocks can't be used");
-        } else if (item == ItemTypes.get(config.wandItem)) {
-            throw new InvalidToolBindException(item, "Already used for the wand");
-        } else if (item == ItemTypes.get(config.navigationWand)) {
-            throw new InvalidToolBindException(item, "Already used for the navigation wand");
+        }
+        if (tool instanceof SelectionWand) {
+            this.wandItem = item.getId();
+            setDirty();
+        } else if (tool instanceof NavigationWand) {
+            this.navWandItem = item.getId();
+            setDirty();
         }
 
         this.tools.put(item, tool);
@@ -782,9 +797,9 @@ public class LocalSession {
      *
      * @param text the message
      */
-    public void handleCUIInitializationMessage(String text) {
+    public void handleCUIInitializationMessage(String text, Actor actor) {
         checkNotNull(text);
-        if (this.failedCuiAttempts > 3) {
+        if (this.hasCUISupport || this.failedCuiAttempts > 3) {
             return;
         }
 
@@ -794,13 +809,18 @@ public class LocalSession {
                 this.failedCuiAttempts ++;
                 return;
             }
-            setCUISupport(true);
+
+            int version;
             try {
-                setCUIVersion(Integer.parseInt(split[1]));
+                version = Integer.parseInt(split[1]);
             } catch (NumberFormatException e) {
                 WorldEdit.logger.warn("Error while reading CUI init message: " + e.getMessage());
                 this.failedCuiAttempts ++;
+                return;
             }
+            setCUISupport(true);
+            setCUIVersion(version);
+            dispatchCUISelection(actor);
         }
     }
 
@@ -882,6 +902,9 @@ public class LocalSession {
         editSession.setFastMode(fastMode);
         editSession.setReorderMode(reorderMode);
         editSession.setMask(mask);
+        if (editSession.getSurvivalExtent() != null) {
+            editSession.getSurvivalExtent().setStripNbt(!player.hasPermission("worldedit.setnbt"));
+        }
 
         return editSession;
     }
@@ -940,4 +963,35 @@ public class LocalSession {
         this.mask = mask;
     }
 
+    /**
+     * Get the preferred wand item for this user, or {@code null} to use the default
+     * @return item id of wand item, or {@code null}
+     */
+    public String getWandItem() {
+        return wandItem;
+    }
+
+    /**
+     * Get the preferred navigation wand item for this user, or {@code null} to use the default
+     * @return item id of nav wand item, or {@code null}
+     */
+    public String getNavWandItem() {
+        return navWandItem;
+    }
+
+    /**
+     * Get the last block distribution stored in this session.
+     *
+     * @return block distribution or {@code null}
+     */
+    public List<Countable<BlockState>> getLastDistribution() {
+        return lastDistribution == null ? null : Collections.unmodifiableList(lastDistribution);
+    }
+
+    /**
+     * Store a block distribution in this session.
+     */
+    public void setLastDistribution(List<Countable<BlockState>> dist) {
+        lastDistribution = dist;
+    }
 }

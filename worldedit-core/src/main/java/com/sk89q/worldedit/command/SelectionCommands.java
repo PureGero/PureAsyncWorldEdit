@@ -25,14 +25,17 @@ import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseItemStack;
 import com.sk89q.worldedit.command.argument.SelectorChoice;
+import com.sk89q.worldedit.command.tool.NavigationWand;
+import com.sk89q.worldedit.command.tool.SelectionWand;
 import com.sk89q.worldedit.command.util.CommandPermissions;
 import com.sk89q.worldedit.command.util.CommandPermissionsConditionGenerator;
 import com.sk89q.worldedit.command.util.Logging;
+import com.sk89q.worldedit.command.util.WorldEditAsyncCommandBuilder;
 import com.sk89q.worldedit.entity.Player;
-import com.sk89q.worldedit.extension.input.ParserContext;
 import com.sk89q.worldedit.extension.platform.permission.ActorSelectorLimits;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.function.block.BlockDistributionCounter;
+import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.visitor.RegionVisitor;
 import com.sk89q.worldedit.internal.annotation.Direction;
@@ -53,22 +56,27 @@ import com.sk89q.worldedit.regions.selector.SphereRegionSelector;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.util.Countable;
 import com.sk89q.worldedit.util.Location;
+import com.sk89q.worldedit.util.formatting.component.BlockDistributionResult;
 import com.sk89q.worldedit.util.formatting.component.CommandListBox;
+import com.sk89q.worldedit.util.formatting.component.PaginationBox;
 import com.sk89q.worldedit.util.formatting.component.SubtleFormat;
 import com.sk89q.worldedit.util.formatting.component.TextComponentProducer;
+import com.sk89q.worldedit.util.formatting.text.TextComponent;
+import com.sk89q.worldedit.util.formatting.text.event.ClickEvent;
+import com.sk89q.worldedit.util.formatting.text.format.TextColor;
 import com.sk89q.worldedit.world.World;
-import com.sk89q.worldedit.world.block.BaseBlock;
 import com.sk89q.worldedit.world.block.BlockState;
+import com.sk89q.worldedit.world.item.ItemType;
 import com.sk89q.worldedit.world.item.ItemTypes;
 import com.sk89q.worldedit.world.storage.ChunkStore;
 import org.enginehub.piston.annotation.Command;
 import org.enginehub.piston.annotation.CommandContainer;
 import org.enginehub.piston.annotation.param.Arg;
+import org.enginehub.piston.annotation.param.ArgFlag;
 import org.enginehub.piston.annotation.param.Switch;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Stream;
 
 import static com.sk89q.worldedit.command.util.Logging.LogMode.POSITION;
@@ -246,24 +254,42 @@ public class SelectionCommands {
         desc = "Get the wand object"
     )
     @CommandPermissions("worldedit.wand")
-    public void wand(Player player) throws WorldEditException {
-        player.giveItem(new BaseItemStack(ItemTypes.get(we.getConfiguration().wandItem), 1));
-        player.print("Left click: select pos #1; Right click: select pos #2");
+    public void wand(Player player, LocalSession session,
+                        @Switch(name = 'n', desc = "Get a navigation wand") boolean navWand) throws WorldEditException {
+        String wandId = navWand ? session.getNavWandItem() : session.getWandItem();
+        if (wandId == null) {
+            wandId = navWand ? we.getConfiguration().navigationWand : we.getConfiguration().wandItem;
+        }
+        ItemType itemType = ItemTypes.get(wandId);
+        if (itemType == null) {
+            player.printError("Wand item is mis-configured or disabled.");
+            return;
+        }
+        player.giveItem(new BaseItemStack(itemType, 1));
+        if (navWand) {
+            session.setTool(itemType, new NavigationWand());
+            player.print("Left click: jump to location; Right click: pass through walls");
+        } else {
+            session.setTool(itemType, new SelectionWand());
+            player.print("Left click: select pos #1; Right click: select pos #2");
+        }
     }
 
     @Command(
         name = "toggleeditwand",
-        desc = "Toggle functionality of the edit wand"
+        desc = "Remind the user that the wand is now a tool and can be unbound with /none."
     )
     @CommandPermissions("worldedit.wand.toggle")
-    public void toggleWand(Player player, LocalSession session) throws WorldEditException {
-        session.setToolControl(!session.isToolControlEnabled());
-
-        if (session.isToolControlEnabled()) {
-            player.print("Edit wand enabled.");
-        } else {
-            player.print("Edit wand disabled.");
-        }
+    public void toggleWand(Player player) {
+        player.print(TextComponent.of("The selection wand is now a normal tool. You can disable it with ")
+                .append(TextComponent.of("/none", TextColor.AQUA).clickEvent(
+                        ClickEvent.of(ClickEvent.Action.RUN_COMMAND, "/none")))
+                .append(TextComponent.of(" and rebind it to any item with "))
+                .append(TextComponent.of("//selwand", TextColor.AQUA).clickEvent(
+                        ClickEvent.of(ClickEvent.Action.RUN_COMMAND, "//selwand")))
+                .append(TextComponent.of(" or get a new wand with "))
+                .append(TextComponent.of("//wand", TextColor.AQUA).clickEvent(
+                        ClickEvent.of(ClickEvent.Action.RUN_COMMAND, "//wand"))));
     }
 
     @Command(
@@ -428,24 +454,13 @@ public class SelectionCommands {
 
     @Command(
         name = "/count",
-        desc = "Counts the number of a certain type of block"
+        desc = "Counts the number of blocks matching a mask"
     )
     @CommandPermissions("worldedit.analysis.count")
     public void count(Player player, LocalSession session, EditSession editSession,
-                      @Arg(desc = "The block type(s) to count")
-                          String blocks,
-                      @Switch(name = 'f', desc = "Fuzzy, match states using a wildcard")
-                          boolean fuzzy) throws WorldEditException {
-        ParserContext context = new ParserContext();
-        context.setActor(player);
-        context.setExtent(player.getExtent());
-        context.setWorld(player.getWorld());
-        context.setSession(session);
-        context.setRestricted(false);
-        context.setPreferringWildcard(fuzzy);
-
-        Set<BaseBlock> searchBlocks = we.getBlockFactory().parseFromListInput(blocks, context);
-        int count = editSession.countBlocks(session.getSelection(player.getWorld()), searchBlocks);
+                      @Arg(desc = "The mask of blocks to match")
+                          Mask mask) throws WorldEditException {
+        int count = editSession.countBlocks(session.getSelection(player.getWorld()), mask);
         player.print("Counted: " + count);
     }
 
@@ -454,21 +469,35 @@ public class SelectionCommands {
         desc = "Get the distribution of blocks in the selection"
     )
     @CommandPermissions("worldedit.analysis.distr")
-    public void distr(Player player, LocalSession session, EditSession editSession,
+    public void distr(Player player, LocalSession session,
                       @Switch(name = 'c', desc = "Get the distribution of the clipboard instead")
                           boolean clipboardDistr,
                       @Switch(name = 'd', desc = "Separate blocks by state")
-                          boolean separateStates) throws WorldEditException {
+                          boolean separateStates,
+                      @ArgFlag(name = 'p', desc = "Gets page from a previous distribution.", def = "")
+                          Integer page) throws WorldEditException {
         List<Countable<BlockState>> distribution;
 
-        if (clipboardDistr) {
-            Clipboard clipboard = session.getClipboard().getClipboard(); // throws if missing
-            BlockDistributionCounter count = new BlockDistributionCounter(clipboard, separateStates);
-            RegionVisitor visitor = new RegionVisitor(clipboard.getRegion(), count);
-            Operations.completeBlindly(visitor);
-            distribution = count.getDistribution();
+        if (page == null) {
+            if (clipboardDistr) {
+                Clipboard clipboard = session.getClipboard().getClipboard(); // throws if missing
+                BlockDistributionCounter count = new BlockDistributionCounter(clipboard, separateStates);
+                RegionVisitor visitor = new RegionVisitor(clipboard.getRegion(), count);
+                Operations.completeBlindly(visitor);
+                distribution = count.getDistribution();
+            } else {
+                try (EditSession editSession = session.createEditSession(player)) {
+                    distribution = editSession.getBlockDistribution(session.getSelection(player.getWorld()), separateStates);
+                }
+            }
+            session.setLastDistribution(distribution);
+            page = 1;
         } else {
-            distribution = editSession.getBlockDistribution(session.getSelection(player.getWorld()), separateStates);
+            distribution = session.getLastDistribution();
+            if (distribution == null) {
+                player.printError("No previous distribution.");
+                return;
+            }
         }
 
         if (distribution.isEmpty()) {  // *Should* always be false
@@ -476,28 +505,9 @@ public class SelectionCommands {
             return;
         }
 
-        // note: doing things like region.getArea is inaccurate for non-cuboids.
-        int size = distribution.stream().mapToInt(Countable::getAmount).sum();
-        player.print("# total blocks: " + size);
-
-        for (Countable<BlockState> c : distribution) {
-            String name = c.getID().getBlockType().getName();
-            String str;
-            if (separateStates) {
-                str = String.format("%-7s (%.3f%%) %s (%s)",
-                        String.valueOf(c.getAmount()),
-                        c.getAmount() / (double) size * 100,
-                        name,
-                        c.getID().getAsString());
-            } else {
-                str = String.format("%-7s (%.3f%%) %s (%s)",
-                        String.valueOf(c.getAmount()),
-                        c.getAmount() / (double) size * 100,
-                        name,
-                        c.getID().getBlockType().getId());
-            }
-            player.print(str);
-        }
+        final int finalPage = page;
+        WorldEditAsyncCommandBuilder.createAndSendMessage(player,
+                () -> new BlockDistributionResult(distribution, separateStates).create(finalPage), null);
     }
 
     @Command(
@@ -558,7 +568,7 @@ public class SelectionCommands {
                 limit.ifPresent(integer -> player.print(integer + " points maximum."));
                 break;
             }
-            case UNKNOWN:
+            case LIST:
             default:
                 CommandListBox box = new CommandListBox("Selection modes", null);
                 box.setHidingHelp(true);

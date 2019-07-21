@@ -21,12 +21,12 @@ package com.sk89q.worldedit.command.util;
 
 import com.sk89q.worldedit.extension.platform.Actor;
 import org.enginehub.piston.Command;
-import org.enginehub.piston.CommandParameters;
+import org.enginehub.piston.inject.InjectedValueAccess;
 import org.enginehub.piston.inject.Key;
 
 import java.util.Set;
 
-public final class PermissionCondition implements Command.Condition {
+public class PermissionCondition implements Command.Condition {
 
     private static final Key<Actor> ACTOR_KEY = Key.of(Actor.class);
 
@@ -41,8 +41,9 @@ public final class PermissionCondition implements Command.Condition {
     }
 
     @Override
-    public boolean satisfied(CommandParameters parameters) {
-        return parameters.injectedValue(ACTOR_KEY)
+    public boolean satisfied(InjectedValueAccess context) {
+        return permissions.isEmpty() ||
+            context.injectedValue(ACTOR_KEY)
             .map(actor -> permissions.stream().anyMatch(actor::hasPermission))
             .orElse(false);
     }

@@ -38,6 +38,7 @@ import com.sk89q.worldedit.extension.platform.Capability;
 import com.sk89q.worldedit.extension.platform.Platform;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
 import com.sk89q.worldedit.internal.command.CommandUtil;
+import com.sk89q.worldedit.internal.anvil.ChunkDeleter;
 import com.sk89q.worldedit.registry.state.Property;
 import com.sk89q.worldedit.world.biome.BiomeType;
 import com.sk89q.worldedit.world.block.BlockCategory;
@@ -73,6 +74,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -82,6 +86,7 @@ import java.util.logging.Level;
 import java.util.zip.ZipEntry;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.sk89q.worldedit.internal.anvil.ChunkDeleter.DELCHUNKS_FILE_NAME;
 
 /**
  * Plugin for Bukkit.
@@ -89,7 +94,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class WorldEditPlugin extends JavaPlugin implements TabCompleter {
 
     private static final Logger log = LoggerFactory.getLogger(WorldEditPlugin.class);
-    static final String CUI_PLUGIN_CHANNEL = "worldedit:cui";
+    public static final String CUI_PLUGIN_CHANNEL = "worldedit:cui";
     private static WorldEditPlugin INSTANCE;
     private static WorldInitListener worldInitListener = null;
 
@@ -109,6 +114,11 @@ public class WorldEditPlugin extends JavaPlugin implements TabCompleter {
         // Setup platform
         server = new BukkitServerInterface(this, getServer());
         worldEdit.getPlatformManager().register(server);
+
+        Path delChunks = Paths.get(getDataFolder().getPath(), DELCHUNKS_FILE_NAME);
+        if (Files.exists(delChunks)) {
+            ChunkDeleter.runFromFile(delChunks, true);
+        }
     }
 
     /**
@@ -131,15 +141,20 @@ public class WorldEditPlugin extends JavaPlugin implements TabCompleter {
 
         // register this so we can load world-dependent data right as the first world is loading
         if (worldInitListener != null) {
-            getLogger().warning("Server reload detected. This may cause various issues with WorldEdit and dependant plugins.");
+            getLogger().warning("Server reload detected. This may cause various issues with WorldEdit and dependent plugins.");
             try {
                 // these don't stick around between reload
                 loadAdapter();
                 loadConfig();
+                WorldEdit.getInstance().getEventBus().post(new PlatformReadyEvent());
             } catch (Throwable ignored) {
             }
         } else {
             getServer().getPluginManager().registerEvents((worldInitListener = new WorldInitListener()), this);
+            loadAdapter(); // Need an adapter to work with special blocks with NBT data
+            setupRegistries();
+            WorldEdit.getInstance().loadMappings();
+            loadConfig(); // Load configuration
         }
 
         // Do the block queue every tick
@@ -155,12 +170,7 @@ public class WorldEditPlugin extends JavaPlugin implements TabCompleter {
     }
 
     private void setupWorldData() {
-        loadAdapter(); // Need an adapter to work with special blocks with NBT data
-        setupRegistries();
-        WorldEdit.getInstance().loadMappings();
-        loadConfig(); // Load configuration
         setupTags();
-
         WorldEdit.getInstance().getEventBus().post(new PlatformReadyEvent());
     }
 

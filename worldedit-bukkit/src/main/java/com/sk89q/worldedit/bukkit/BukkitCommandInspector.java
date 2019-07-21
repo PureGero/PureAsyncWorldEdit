@@ -24,12 +24,9 @@ import com.sk89q.worldedit.extension.platform.Actor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.enginehub.piston.CommandManager;
-import org.enginehub.piston.CommandParameters;
-import org.enginehub.piston.NoInputCommandParameters;
 import org.enginehub.piston.inject.InjectedValueStore;
 import org.enginehub.piston.inject.Key;
 import org.enginehub.piston.inject.MapBackedValueStore;
-import org.enginehub.piston.inject.MemoizingValueAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,10 +77,7 @@ class BukkitCommandInspector implements CommandInspector {
             InjectedValueStore store = MapBackedValueStore.create();
             store.injectValue(Key.of(Actor.class), context ->
                 Optional.of(plugin.wrapCommandSender(sender)));
-            CommandParameters parameters = NoInputCommandParameters.builder()
-                .injectedValues(MemoizingValueAccess.wrap(store))
-                .build();
-            return mapping.get().getCondition().satisfied(parameters);
+            return mapping.get().getCondition().satisfied(store);
         } else {
             logger.warn("BukkitCommandInspector doesn't know how about the command '" + command + "'");
             return false;

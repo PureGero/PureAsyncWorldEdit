@@ -335,7 +335,11 @@ public class BukkitAdapter {
      * @return WorldEdit EntityType
      */
     public static EntityType adapt(org.bukkit.entity.EntityType entityType) {
-        return EntityTypes.get(entityType.getName().toLowerCase(Locale.ROOT));
+        final String name = entityType.getName();
+        if (name == null) {
+            return null;
+        }
+        return EntityTypes.get(name.toLowerCase(Locale.ROOT));
     }
 
     public static org.bukkit.entity.EntityType adapt(EntityType entityType) {
@@ -439,6 +443,9 @@ public class BukkitAdapter {
      */
     public static BaseItemStack adapt(ItemStack itemStack) {
         checkNotNull(itemStack);
+        if (WorldEditPlugin.getInstance().getBukkitImplAdapter() != null) {
+            return WorldEditPlugin.getInstance().getBukkitImplAdapter().adapt(itemStack);
+        }
         return new BaseItemStack(ItemTypes.get(itemStack.getType().getKey().toString()), itemStack.getAmount());
     }
 
@@ -450,6 +457,9 @@ public class BukkitAdapter {
      */
     public static ItemStack adapt(BaseItemStack item) {
         checkNotNull(item);
+        if (WorldEditPlugin.getInstance().getBukkitImplAdapter() != null) {
+            return WorldEditPlugin.getInstance().getBukkitImplAdapter().adapt(item);
+        }
         return new ItemStack(adapt(item.getType()), item.getAmount());
     }
 }
