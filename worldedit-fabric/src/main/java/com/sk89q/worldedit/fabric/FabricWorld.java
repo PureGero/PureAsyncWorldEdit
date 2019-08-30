@@ -100,6 +100,7 @@ import java.lang.ref.WeakReference;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Random;
@@ -169,6 +170,13 @@ public class FabricWorld extends AbstractWorld {
     }
 
     @Override
+    public String getId() {
+        return getWorld().getLevelProperties().getLevelName()
+                .replace(" ", "_").toLowerCase(Locale.ROOT)
+                + getWorld().dimension.getType().getSuffix();
+    }
+
+    @Override
     public Path getStoragePath() {
         final World world = getWorld();
         if (world instanceof ServerWorld) {
@@ -202,9 +210,13 @@ public class FabricWorld extends AbstractWorld {
                 CompoundTag tag = ((BaseBlock) block).getNbtData();
                 if (tag != null) {
                     net.minecraft.nbt.CompoundTag nativeTag = NBTConverter.toNative(tag);
-                    nativeTag.putString("id", ((BaseBlock) block).getNbtId());
-                    TileEntityUtils.setTileEntity(world, position, nativeTag);
-                    successful = true; // update if TE changed as well
+                    BlockEntity tileEntity = getWorld().getWorldChunk(pos).getBlockEntity(pos);
+                    if (tileEntity != null) {
+                        tileEntity.fromTag(nativeTag);
+                        tileEntity.setPos(pos);
+                        tileEntity.setWorld(world);
+                        successful = true; // update if TE changed as well
+                    }
                 }
             }
         }
@@ -503,7 +515,9 @@ public class FabricWorld extends AbstractWorld {
         BlockEntity tile = ((WorldChunk) getWorld().getChunk(pos)).getBlockEntity(pos, WorldChunk.CreationType.CHECK);
 
         if (tile != null) {
-            return getBlock(position).toBaseBlock(NBTConverter.fromNative(TileEntityUtils.copyNbtData(tile)));
+            net.minecraft.nbt.CompoundTag tag = new net.minecraft.nbt.CompoundTag();
+            tile.toTag(tag);
+            return getBlock(position).toBaseBlock(NBTConverter.fromNative(tag));
         } else {
             return getBlock(position).toBaseBlock();
         }

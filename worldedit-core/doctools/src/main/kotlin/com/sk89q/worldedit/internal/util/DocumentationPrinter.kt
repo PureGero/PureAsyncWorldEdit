@@ -48,21 +48,33 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.stream.Stream
 import kotlin.streams.toList
-import org.enginehub.piston.annotation.Command as CommandAnnotation
 
 class DocumentationPrinter private constructor() {
 
+    private val nameRegex = Regex("name = \"(.+?)\"")
     private val serializer = PlainComponentSerializer({ "" }, TranslatableComponent::key)
     private val commands = WorldEdit.getInstance().platformManager.platformCommandManager.commandManager.allCommands
             .map { it.name to it }.toList().toMap()
     private val cmdOutput = StringBuilder()
     private val permsOutput = StringBuilder()
+    private val matchedCommands = mutableSetOf<String>()
 
     private suspend inline fun <reified T> SequenceScope<String>.yieldAllCommandsIn() {
-        for (method in T::class.java.methods) {
-            val cmdAnno = method.getDeclaredAnnotation(CommandAnnotation::class.java)
-            if (cmdAnno != null) {
-                yield(cmdAnno.name)
+        val sourceFile = Paths.get("worldedit-core/src/main/java/" + T::class.qualifiedName!!.replace('.', '/') + ".java")
+        require(Files.exists(sourceFile)) {
+            "Source not found for ${T::class.qualifiedName}, looked at ${sourceFile.toAbsolutePath()}"
+        }
+        Files.newBufferedReader(sourceFile).useLines { lines ->
+            var inCommand = false
+            for (line in lines) {
+                if (inCommand) {
+                    when (val match = nameRegex.find(line)) {
+                        null -> if (line.trim() == ")") inCommand = false
+                        else -> yield(match.groupValues[1])
+                    }
+                } else if (line.contains("@Command(")) {
+                    inCommand = true
+                }
             }
         }
     }
@@ -82,7 +94,7 @@ class DocumentationPrinter private constructor() {
 
         dumpSection("Selection Commands") {
             yieldAllCommandsIn<SelectionCommands>()
-            yieldAllCommandsIn<ExpandCommands>()
+            yield("/expand")
         }
 
         dumpSection("Region Commands") {
@@ -133,6 +145,9 @@ class DocumentationPrinter private constructor() {
         }
 
         writeFooter()
+
+        val missingCommands = commands.keys.filterNot { it in matchedCommands }
+        require(missingCommands.isEmpty()) { "Missing commands: $missingCommands" }
     }
 
     private fun writeHeader() {
@@ -203,6 +218,7 @@ Other Permissions
 
         val prefix = TextConfig.getCommandPrefix()
         val commands = sequence(addCommandNames).map { this.commands.getValue(it) }.toList()
+        matchedCommands.addAll(commands.map { it.name })
 
         cmdsToPerms(commands, prefix)
 
@@ -219,8 +235,7 @@ Other Permissions
     private fun cmdsToPerms(cmds: List<Command>, prefix: String) {
         cmds.forEach { c ->
             permsOutput.append("    ").append(cmdToPerm(prefix, c)).append("\n")
-            c.parts.filter { p -> p is SubCommandPart }
-                    .map { p -> p as SubCommandPart }
+            c.parts.filterIsInstance<SubCommandPart>()
                     .forEach { scp ->
                         cmdsToPerms(scp.commands.sortedBy { it.name }, prefix + c.name + " ")
                     }
@@ -252,14 +267,16 @@ Other Permissions
                     postfix = ")",
                     transform = { "``$prefix$it``" })
         }
-        cmdOutput.appendln().appendln()
+        cmdOutput.appendln()
+        cmdOutput.appendln("    :class: command-topic").appendln()
         cmdOutput.appendln("""
             |    .. csv-table::
             |        :widths: 8, 15
         """.trimMargin())
         cmdOutput.appendln()
         for ((k, v) in entries) {
-            val rstSafe = v.replace("\"", "\\\"").replace("\n", "\n" + "    ".repeat(2))
+            val rstSafe = v.trim().replace("\"", "\\\"").replace("\n", "\n" + "    ".repeat(2))
+                .lineSequence().map { line -> line.ifBlank { "" } }.joinToString(separator = "\n")
             cmdOutput.append("    ".repeat(2))
                     .append(k)
                     .append(",")

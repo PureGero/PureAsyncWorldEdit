@@ -105,7 +105,8 @@ public final class WorldEdit {
     private final PlatformManager platformManager = new PlatformManager(this);
     private final EditSessionFactory editSessionFactory = new EditSessionFactory.EditSessionFactoryImpl(eventBus);
     private final SessionManager sessions = new SessionManager(this);
-    private final ListeningExecutorService executorService = MoreExecutors.listeningDecorator(EvenMoreExecutors.newBoundedCachedThreadPool(0, 1, 20));;
+    private final ListeningExecutorService executorService = MoreExecutors.listeningDecorator(
+            EvenMoreExecutors.newBoundedCachedThreadPool(0, 1, 20, "WorldEdit Task Executor - %s"));
     private final Supervisor supervisor = new SimpleSupervisor();
     private final BlockQueueManager blockQueueManager = new BlockQueueManager();
 
@@ -229,7 +230,7 @@ public final class WorldEdit {
      * traversal exploits by checking the root directory and the file directory.
      * On success, a {@code java.io.File} object will be returned.
      *
-     * @param player the player
+     * @param actor the actor
      * @param dir sub-directory to look in
      * @param filename filename (user-submitted)
      * @param defaultExt append an extension if missing one, null to not use
@@ -237,8 +238,8 @@ public final class WorldEdit {
      * @return a file
      * @throws FilenameException thrown if the filename is invalid
      */
-    public File getSafeSaveFile(Player player, File dir, String filename, String defaultExt, String... extensions) throws FilenameException {
-        return getSafeFile(player, dir, filename, defaultExt, extensions, true);
+    public File getSafeSaveFile(Actor actor, File dir, String filename, String defaultExt, String... extensions) throws FilenameException {
+        return getSafeFile(actor, dir, filename, defaultExt, extensions, true);
     }
 
     /**
@@ -247,7 +248,7 @@ public final class WorldEdit {
      * traversal exploits by checking the root directory and the file directory.
      * On success, a {@code java.io.File} object will be returned.
      *
-     * @param player the player
+     * @param actor the actor
      * @param dir sub-directory to look in
      * @param filename filename (user-submitted)
      * @param defaultExt append an extension if missing one, null to not use
@@ -255,14 +256,14 @@ public final class WorldEdit {
      * @return a file
      * @throws FilenameException thrown if the filename is invalid
      */
-    public File getSafeOpenFile(Player player, File dir, String filename, String defaultExt, String... extensions) throws FilenameException {
-        return getSafeFile(player, dir, filename, defaultExt, extensions, false);
+    public File getSafeOpenFile(Actor actor, File dir, String filename, String defaultExt, String... extensions) throws FilenameException {
+        return getSafeFile(actor, dir, filename, defaultExt, extensions, false);
     }
 
     /**
      * Get a safe path to a file.
      *
-     * @param player the player
+     * @param actor the actor
      * @param dir sub-directory to look in
      * @param filename filename (user-submitted)
      * @param defaultExt append an extension if missing one, null to not use
@@ -271,16 +272,16 @@ public final class WorldEdit {
      * @return a file
      * @throws FilenameException thrown if the filename is invalid
      */
-    private File getSafeFile(@Nullable Player player, File dir, String filename, String defaultExt, String[] extensions, boolean isSave) throws FilenameException {
+    private File getSafeFile(@Nullable Actor actor, File dir, String filename, String defaultExt, String[] extensions, boolean isSave) throws FilenameException {
         if (extensions != null && (extensions.length == 1 && extensions[0] == null)) extensions = null;
 
         File f;
 
-        if (filename.equals("#") && player != null) {
+        if (filename.equals("#") && actor != null) {
             if (isSave) {
-                f = player.openFileSaveDialog(extensions);
+                f = actor.openFileSaveDialog(extensions);
             } else {
-                f = player.openFileOpenDialog(extensions);
+                f = actor.openFileOpenDialog(extensions);
             }
 
             if (f == null) {
@@ -669,7 +670,7 @@ public final class WorldEdit {
             engine = new RhinoCraftScriptEngine();
         } catch (NoClassDefFoundError ignored) {
             player.printError("Failed to find an installed script engine.");
-            player.printError("Please see https://worldedit.readthedocs.io/en/latest/usage/other/craftscripts/");
+            player.printError("Please see https://worldedit.enginehub.org/en/latest/usage/other/craftscripts/");
             return;
         }
 

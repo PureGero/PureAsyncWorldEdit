@@ -26,7 +26,9 @@ import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.command.util.CommandPermissions;
 import com.sk89q.worldedit.command.util.CommandPermissionsConditionGenerator;
 import com.sk89q.worldedit.command.util.Logging;
+import com.sk89q.worldedit.command.util.WorldEditAsyncCommandBuilder;
 import com.sk89q.worldedit.entity.Player;
+import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.internal.anvil.ChunkDeleter;
 import com.sk89q.worldedit.internal.anvil.ChunkDeletionInfo;
 import com.sk89q.worldedit.math.BlockVector2;
@@ -34,9 +36,11 @@ import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.util.formatting.component.PaginationBox;
+import com.sk89q.worldedit.util.formatting.text.Component;
 import com.sk89q.worldedit.util.formatting.text.TextComponent;
 import com.sk89q.worldedit.util.formatting.text.event.ClickEvent;
 import com.sk89q.worldedit.util.formatting.text.format.TextColor;
+import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.storage.LegacyChunkStore;
 import com.sk89q.worldedit.world.storage.McRegionChunkStore;
 import org.enginehub.piston.annotation.Command;
@@ -50,8 +54,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.sk89q.worldedit.command.util.Logging.LogMode.REGION;
@@ -76,7 +80,7 @@ public class ChunkCommands {
     )
     @CommandPermissions("worldedit.chunkinfo")
     public void chunkInfo(Player player) {
-        Location pos = player.getBlockIn();
+        Location pos = player.getBlockLocation();
         int chunkX = (int) Math.floor(pos.getBlockX() / 16.0);
         int chunkZ = (int) Math.floor(pos.getBlockZ() / 16.0);
 
@@ -91,13 +95,13 @@ public class ChunkCommands {
         desc = "List chunks that your selection includes"
     )
     @CommandPermissions("worldedit.listchunks")
-    public void listChunks(Player player, LocalSession session,
+    public void listChunks(Actor actor, World world, LocalSession session,
                             @ArgFlag(name = 'p', desc = "Page number.", def = "1") int page) throws WorldEditException {
-        Set<BlockVector2> chunks = session.getSelection(player.getWorld()).getChunks();
+        final Region region = session.getSelection(world);
 
-        PaginationBox paginationBox = PaginationBox.fromStrings("Selected Chunks", "/listchunks -p %page%",
-                chunks.stream().map(BlockVector2::toString).collect(Collectors.toList()));
-        player.print(paginationBox.create(page));
+        WorldEditAsyncCommandBuilder.createAndSendMessage(actor,
+                () -> new ChunkListPaginationBox(region).create(page),
+                "Listing chunks for " + actor.getName());
     }
 
     @Command(
@@ -106,10 +110,10 @@ public class ChunkCommands {
     )
     @CommandPermissions("worldedit.delchunks")
     @Logging(REGION)
-    public void deleteChunks(Player player, LocalSession session,
+    public void deleteChunks(Actor actor, World world, LocalSession session,
                                 @ArgFlag(name = 'o', desc = "Only delete chunks older than the specified time.", def = "")
                                     ZonedDateTime beforeTime) throws WorldEditException {
-        Path worldDir = player.getWorld().getStoragePath();
+        Path worldDir = world.getStoragePath();
         if (worldDir == null) {
             throw new StopExecutionException(TextComponent.of("Couldn't find world folder for this world."));
         }
@@ -132,10 +136,10 @@ public class ChunkCommands {
         ChunkDeletionInfo.ChunkBatch newBatch = new ChunkDeletionInfo.ChunkBatch();
         newBatch.worldPath = worldDir.toAbsolutePath().normalize().toString();
         newBatch.backup = true;
-        final Region selection = session.getSelection(player.getWorld());
+        final Region selection = session.getSelection(world);
         if (selection instanceof CuboidRegion) {
-            newBatch.minChunk = BlockVector2.at(selection.getMinimumPoint().getBlockX() >> 4, selection.getMinimumPoint().getBlockZ() >> 4);
-            newBatch.maxChunk = BlockVector2.at(selection.getMaximumPoint().getBlockX() >> 4, selection.getMaximumPoint().getBlockZ() >> 4);
+            newBatch.minChunk = selection.getMinimumPoint().shr(4).toBlockVector2();
+            newBatch.maxChunk = selection.getMaximumPoint().shr(4).toBlockVector2();
         } else {
             // this has a possibility to OOM for very large selections still
             Set<BlockVector2> chunks = selection.getChunks();
@@ -157,15 +161,38 @@ public class ChunkCommands {
             throw new StopExecutionException(TextComponent.of("Failed to write chunk list: " + e.getMessage()));
         }
 
-        player.print(String.format("%d chunk(s) have been marked for deletion the next time the server starts.",
+        actor.print(String.format("%d chunk(s) have been marked for deletion the next time the server starts.",
                 newBatch.getChunkCount()));
         if (currentInfo.batches.size() > 1) {
-            player.printDebug(String.format("%d chunks total marked for deletion. (May have overlaps).",
+            actor.printDebug(String.format("%d chunks total marked for deletion. (May have overlaps).",
                     currentInfo.batches.stream().mapToInt(ChunkDeletionInfo.ChunkBatch::getChunkCount).sum()));
         }
-        player.print(TextComponent.of("You can mark more chunks for deletion, or to stop now, run: ", TextColor.LIGHT_PURPLE)
+        actor.print(TextComponent.of("You can mark more chunks for deletion, or to stop now, run: ", TextColor.LIGHT_PURPLE)
                 .append(TextComponent.of("/stop", TextColor.AQUA)
                         .clickEvent(ClickEvent.of(ClickEvent.Action.SUGGEST_COMMAND, "/stop"))));
     }
 
+    private static class ChunkListPaginationBox extends PaginationBox {
+        //private final Region region;
+        private final List<BlockVector2> chunks;
+
+        ChunkListPaginationBox(Region region) {
+            super("Selected Chunks", "/listchunks -p %page%");
+            // TODO make efficient/streamable/calculable implementations of this
+            // for most region types, so we can just store the region and random-access get one page of chunks
+            // (this is non-trivial for some types of selections...)
+            //this.region = region.clone();
+            this.chunks = new ArrayList<>(region.getChunks());
+        }
+
+        @Override
+        public Component getComponent(int number) {
+            return TextComponent.of(chunks.get(number).toString());
+        }
+
+        @Override
+        public int getComponentsSize() {
+            return chunks.size();
+        }
+    }
 }

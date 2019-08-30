@@ -19,6 +19,8 @@
 
 package com.sk89q.worldedit.command;
 
+import com.google.common.collect.Multimap;
+import com.google.common.io.Files;
 import com.sk89q.worldedit.LocalConfiguration;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.WorldEdit;
@@ -42,10 +44,10 @@ import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.util.formatting.component.CodeFormat;
 import com.sk89q.worldedit.util.formatting.component.ErrorFormat;
 import com.sk89q.worldedit.util.formatting.component.PaginationBox;
-import com.sk89q.worldedit.util.formatting.component.SchematicPaginationBox;
 import com.sk89q.worldedit.util.formatting.text.Component;
 import com.sk89q.worldedit.util.formatting.text.TextComponent;
 import com.sk89q.worldedit.util.formatting.text.event.ClickEvent;
+import com.sk89q.worldedit.util.formatting.text.event.HoverEvent;
 import com.sk89q.worldedit.util.formatting.text.format.TextColor;
 import com.sk89q.worldedit.util.io.Closer;
 import com.sk89q.worldedit.util.io.file.FilenameException;
@@ -68,7 +70,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.regex.Pattern;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -95,7 +99,7 @@ public class SchematicCommands {
         desc = "Load a schematic into your clipboard"
     )
     @CommandPermissions({"worldedit.clipboard.load", "worldedit.schematic.load"})
-    public void load(Player player, LocalSession session,
+    public void load(Actor actor, LocalSession session,
                      @Arg(desc = "File name.")
                          String filename,
                      @Arg(desc = "Format name.", def = "sponge")
@@ -103,12 +107,12 @@ public class SchematicCommands {
         LocalConfiguration config = worldEdit.getConfiguration();
 
         File dir = worldEdit.getWorkingDirectoryFile(config.saveDir);
-        File f = worldEdit.getSafeOpenFile(player, dir, filename,
+        File f = worldEdit.getSafeOpenFile(actor, dir, filename,
                 BuiltInClipboardFormat.SPONGE_SCHEMATIC.getPrimaryFileExtension(),
                 ClipboardFormats.getFileExtensionArray());
 
         if (!f.exists()) {
-            player.printError("Schematic " + filename + " does not exist!");
+            actor.printError("Schematic " + filename + " does not exist!");
             return;
         }
 
@@ -117,12 +121,12 @@ public class SchematicCommands {
             format = ClipboardFormats.findByAlias(formatName);
         }
         if (format == null) {
-            player.printError("Unknown schematic format: " + formatName);
+            actor.printError("Unknown schematic format: " + formatName);
             return;
         }
 
-        SchematicLoadTask task = new SchematicLoadTask(player, f, format);
-        AsyncCommandBuilder.wrap(task, player)
+        SchematicLoadTask task = new SchematicLoadTask(actor, f, format);
+        AsyncCommandBuilder.wrap(task, actor)
                 .registerWithSupervisor(worldEdit.getSupervisor(), "Loading schematic " + filename)
                 .sendMessageAfterDelay("(Please wait... loading schematic.)")
                 .onSuccess(TextComponent.of(filename, TextColor.GOLD)
@@ -138,7 +142,7 @@ public class SchematicCommands {
         desc = "Save a schematic into your clipboard"
     )
     @CommandPermissions({"worldedit.clipboard.save", "worldedit.schematic.save"})
-    public void save(Player player, LocalSession session,
+    public void save(Actor actor, LocalSession session,
                      @Arg(desc = "File name.")
                          String filename,
                      @Arg(desc = "Format name.", def = "sponge")
@@ -152,19 +156,19 @@ public class SchematicCommands {
 
         ClipboardFormat format = ClipboardFormats.findByAlias(formatName);
         if (format == null) {
-            player.printError("Unknown schematic format: " + formatName);
+            actor.printError("Unknown schematic format: " + formatName);
             return;
         }
 
-        File f = worldEdit.getSafeSaveFile(player, dir, filename, format.getPrimaryFileExtension());
+        File f = worldEdit.getSafeSaveFile(actor, dir, filename, format.getPrimaryFileExtension());
 
         boolean overwrite = f.exists();
         if (overwrite) {
-            if (!player.hasPermission("worldedit.schematic.delete")) {
+            if (!actor.hasPermission("worldedit.schematic.delete")) {
                 throw new StopExecutionException(TextComponent.of("That schematic already exists!"));
             }
             if (!allowOverwrite) {
-                player.printError("That schematic already exists. Use the -f flag to overwrite it.");
+                actor.printError("That schematic already exists. Use the -f flag to overwrite it.");
                 return;
             }
         }
@@ -180,8 +184,8 @@ public class SchematicCommands {
 
         ClipboardHolder holder = session.getClipboard();
 
-        SchematicSaveTask task = new SchematicSaveTask(player, f, format, holder, overwrite);
-        AsyncCommandBuilder.wrap(task, player)
+        SchematicSaveTask task = new SchematicSaveTask(actor, f, format, holder, overwrite);
+        AsyncCommandBuilder.wrap(task, actor)
                 .registerWithSupervisor(worldEdit.getSupervisor(), "Saving schematic " + filename)
                 .sendMessageAfterDelay("(Please wait... saving schematic.)")
                 .onSuccess(filename + " saved" + (overwrite ? " (overwriting previous file)." : "."), null)
@@ -274,12 +278,12 @@ public class SchematicCommands {
     }
 
     private static class SchematicLoadTask implements Callable<ClipboardHolder> {
-        private final Player player;
+        private final Actor actor;
         private final File file;
         private final ClipboardFormat format;
 
-        SchematicLoadTask(Player player, File file, ClipboardFormat format) {
-            this.player = player;
+        SchematicLoadTask(Actor actor, File file, ClipboardFormat format) {
+            this.actor = actor;
             this.file = file;
             this.format = format;
         }
@@ -292,21 +296,21 @@ public class SchematicCommands {
                 ClipboardReader reader = closer.register(format.getReader(bis));
 
                 Clipboard clipboard = reader.read();
-                log.info(player.getName() + " loaded " + file.getCanonicalPath());
+                log.info(actor.getName() + " loaded " + file.getCanonicalPath());
                 return new ClipboardHolder(clipboard);
             }
         }
     }
 
     private static class SchematicSaveTask implements Callable<Void> {
-        private final Player player;
+        private final Actor actor;
         private final File file;
         private final ClipboardFormat format;
         private final ClipboardHolder holder;
         private final boolean overwrite;
 
-        SchematicSaveTask(Player player, File file, ClipboardFormat format, ClipboardHolder holder, boolean overwrite) {
-            this.player = player;
+        SchematicSaveTask(Actor actor, File file, ClipboardFormat format, ClipboardHolder holder, boolean overwrite) {
+            this.actor = actor;
             this.file = file;
             this.format = format;
             this.holder = holder;
@@ -335,7 +339,7 @@ public class SchematicCommands {
                 ClipboardWriter writer = closer.register(format.getWriter(bos));
                 writer.write(target);
 
-                log.info(player.getName() + " saved " + file.getCanonicalPath() + (overwrite ? " (overwriting previous file)" : ""));
+                log.info(actor.getName() + " saved " + file.getCanonicalPath() + (overwrite ? " (overwriting previous file)" : ""));
             }
             return null;
         }
@@ -403,5 +407,45 @@ public class SchematicCommands {
             }
         }
         return fileList;
+    }
+
+    private static class SchematicPaginationBox extends PaginationBox {
+        private final String prefix;
+        private final File[] files;
+
+        SchematicPaginationBox(String rootDir, File[] files, String pageCommand) {
+            super("Available schematics", pageCommand);
+            this.prefix = rootDir == null ? "" : rootDir;
+            this.files = files;
+        }
+
+        @Override
+        public Component getComponent(int number) {
+            checkArgument(number < files.length && number >= 0);
+            File file = files[number];
+            Multimap<String, ClipboardFormat> exts = ClipboardFormats.getFileExtensionMap();
+            String format = exts.get(Files.getFileExtension(file.getName()))
+                    .stream().findFirst().map(ClipboardFormat::getName).orElse("Unknown");
+            boolean inRoot = file.getParentFile().getName().equals(prefix);
+
+            String path = inRoot ? file.getName() : file.getPath().split(Pattern.quote(prefix + File.separator))[1];
+
+            return TextComponent.builder()
+                    .content("")
+                    .append(TextComponent.of("[L]")
+                            .color(TextColor.GOLD)
+                            .clickEvent(ClickEvent.of(ClickEvent.Action.RUN_COMMAND, "/schem load \"" + path + "\""))
+                            .hoverEvent(HoverEvent.of(HoverEvent.Action.SHOW_TEXT, TextComponent.of("Click to load"))))
+                    .append(TextComponent.space())
+                    .append(TextComponent.of(path)
+                            .color(TextColor.DARK_GREEN)
+                            .hoverEvent(HoverEvent.of(HoverEvent.Action.SHOW_TEXT, TextComponent.of(format))))
+                    .build();
+        }
+
+        @Override
+        public int getComponentsSize() {
+            return files.length;
+        }
     }
 }

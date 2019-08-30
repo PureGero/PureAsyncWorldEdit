@@ -56,6 +56,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.block.Biome;
+import org.bukkit.command.BlockCommandSender;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
@@ -96,7 +97,6 @@ public class WorldEditPlugin extends JavaPlugin implements TabCompleter {
     private static final Logger log = LoggerFactory.getLogger(WorldEditPlugin.class);
     public static final String CUI_PLUGIN_CHANNEL = "worldedit:cui";
     private static WorldEditPlugin INSTANCE;
-    private static WorldInitListener worldInitListener = null;
 
     private BukkitImplAdapter bukkitAdapter;
     private BukkitServerInterface server;
@@ -139,22 +139,19 @@ public class WorldEditPlugin extends JavaPlugin implements TabCompleter {
             getServer().getPluginManager().registerEvents(new AsyncTabCompleteListener(), this);
         }
 
-        // register this so we can load world-dependent data right as the first world is loading
-        if (worldInitListener != null) {
+        initializeRegistries(); // this creates the objects matching Bukkit's enums - but doesn't fill them with data yet
+        if (Bukkit.getWorlds().isEmpty()) {
+            setupPreWorldData();
+            // register this so we can load world-dependent data right as the first world is loading
+            getServer().getPluginManager().registerEvents(new WorldInitListener(), this);
+        } else {
             getLogger().warning("Server reload detected. This may cause various issues with WorldEdit and dependent plugins.");
             try {
-                // these don't stick around between reload
-                loadAdapter();
-                loadConfig();
-                WorldEdit.getInstance().getEventBus().post(new PlatformReadyEvent());
+                setupPreWorldData();
+                // since worlds are loaded already, we can do this now
+                setupWorldData();
             } catch (Throwable ignored) {
             }
-        } else {
-            getServer().getPluginManager().registerEvents((worldInitListener = new WorldInitListener()), this);
-            loadAdapter(); // Need an adapter to work with special blocks with NBT data
-            setupRegistries();
-            WorldEdit.getInstance().loadMappings();
-            loadConfig(); // Load configuration
         }
 
         // Do the block queue every tick
@@ -169,12 +166,19 @@ public class WorldEditPlugin extends JavaPlugin implements TabCompleter {
         PaperLib.suggestPaper(this);
     }
 
+    private void setupPreWorldData() {
+        loadAdapter();
+        loadConfig();
+        WorldEdit.getInstance().loadMappings();
+    }
+
     private void setupWorldData() {
-        setupTags();
+        setupTags(); // datapacks aren't loaded until just before the world is, and bukkit has no event for this
+        // so the earliest we can do this is in WorldInit
         WorldEdit.getInstance().getEventBus().post(new PlatformReadyEvent());
     }
 
-    private void setupRegistries() {
+    private void initializeRegistries() {
         // Biome
         for (Biome biome : Biome.values()) {
             String lowerCaseBiomeName = biome.name().toLowerCase(Locale.ROOT);
@@ -339,7 +343,7 @@ public class WorldEditPlugin extends JavaPlugin implements TabCompleter {
         // code of WorldEdit expects it
         String[] split = new String[args.length + 1];
         System.arraycopy(args, 0, split, 1, args.length);
-        split[0] = "/" + cmd.getName();
+        split[0] = "/" + commandLabel;
 
         CommandEvent event = new CommandEvent(wrapCommandSender(sender), Joiner.on(" ").join(split));
         getWorldEdit().getEventBus().post(event);
@@ -353,7 +357,7 @@ public class WorldEditPlugin extends JavaPlugin implements TabCompleter {
         // code of WorldEdit expects it
         String[] split = new String[args.length + 1];
         System.arraycopy(args, 0, split, 1, args.length);
-        split[0] = "/" + cmd.getName();
+        split[0] = "/" + commandLabel;
 
         String arguments = Joiner.on(" ").join(split);
         CommandSuggestionEvent event = new CommandSuggestionEvent(wrapCommandSender(sender), arguments);
@@ -436,6 +440,8 @@ public class WorldEditPlugin extends JavaPlugin implements TabCompleter {
     public Actor wrapCommandSender(CommandSender sender) {
         if (sender instanceof Player) {
             return wrapPlayer((Player) sender);
+        } else if (config.commandBlockSupport && sender instanceof BlockCommandSender) {
+            return new BukkitBlockCommandSender(this, (BlockCommandSender) sender);
         }
 
         return new BukkitCommandSender(this, sender);
@@ -494,9 +500,9 @@ public class WorldEditPlugin extends JavaPlugin implements TabCompleter {
             if (!event.isCommand()) return;
 
             String buffer = event.getBuffer();
-            final String[] parts = buffer.split(" ");
-            if (parts.length < 1) return;
-            final String label = parts[0];
+            int firstSpace = buffer.indexOf(' ');
+            if (firstSpace < 0) return;
+            final String label = buffer.substring(0, firstSpace);
             final Optional<org.enginehub.piston.Command> command
                     = WorldEdit.getInstance().getPlatformManager().getPlatformCommandManager().getCommandManager().getCommand(label);
             if (!command.isPresent()) return;
