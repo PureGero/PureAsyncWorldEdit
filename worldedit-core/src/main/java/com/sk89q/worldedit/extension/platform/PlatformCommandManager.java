@@ -19,8 +19,6 @@
 
 package com.sk89q.worldedit.extension.platform;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
@@ -64,7 +62,6 @@ import com.sk89q.worldedit.command.SnapshotUtilCommandsRegistration;
 import com.sk89q.worldedit.command.SuperPickaxeCommands;
 import com.sk89q.worldedit.command.SuperPickaxeCommandsRegistration;
 import com.sk89q.worldedit.command.ToolCommands;
-import com.sk89q.worldedit.command.ToolCommandsRegistration;
 import com.sk89q.worldedit.command.ToolUtilCommands;
 import com.sk89q.worldedit.command.ToolUtilCommandsRegistration;
 import com.sk89q.worldedit.command.UtilityCommands;
@@ -109,7 +106,8 @@ import com.sk89q.worldedit.util.logging.LogFormat;
 import com.sk89q.worldedit.world.World;
 import org.enginehub.piston.Command;
 import org.enginehub.piston.CommandManager;
-import org.enginehub.piston.TextConfig;
+import org.enginehub.piston.config.ConfigHolder;
+import org.enginehub.piston.config.TextConfig;
 import org.enginehub.piston.converter.ArgumentConverters;
 import org.enginehub.piston.exception.CommandException;
 import org.enginehub.piston.exception.CommandExecutionException;
@@ -141,6 +139,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Handles the registration and invocation of commands.
  *
@@ -152,10 +152,6 @@ public final class PlatformCommandManager {
     private static final Logger log = LoggerFactory.getLogger(PlatformCommandManager.class);
     private static final java.util.logging.Logger COMMAND_LOG =
         java.util.logging.Logger.getLogger("com.sk89q.worldedit.CommandLog");
-
-    static {
-        TextConfig.setCommandPrefix("/");
-    }
 
     private final WorldEdit worldEdit;
     private final PlatformManager platformManager;
@@ -399,11 +395,7 @@ public final class PlatformCommandManager {
             SnapshotUtilCommandsRegistration.builder(),
             new SnapshotUtilCommands(worldEdit)
         );
-        this.registration.register(
-            commandManager,
-            ToolCommandsRegistration.builder(),
-            new ToolCommands(worldEdit)
-        );
+        ToolCommands.register(registration, commandManager, commandManagerService, worldEdit);
         this.registration.register(
             commandManager,
             ToolUtilCommandsRegistration.builder(),
@@ -505,7 +497,7 @@ public final class PlatformCommandManager {
             }
         } catch (ConditionFailedException e) {
             if (e.getCondition() instanceof PermissionCondition) {
-                actor.printError("You are not permitted to do that. Are you in the right mode?");
+                actor.printError(TranslatableComponent.of("worldedit.command.permissions"));
             } else {
                 actor.print(e.getRichMessage());
             }
@@ -541,15 +533,15 @@ public final class PlatformCommandManager {
 
                 if (config.profile) {
                     long time = System.currentTimeMillis() - start;
+                    double timeS = (time / 1000.0);
                     int changed = editSession.getBlockChangeCount();
-                    if (time > 0) {
-                        double throughput = changed / (time / 1000.0);
-                        actor.printDebug((time / 1000.0) + "s elapsed (history: "
-                                + changed + " changed; "
-                                + Math.round(throughput) + " blocks/sec).");
-                    } else {
-                        actor.printDebug((time / 1000.0) + "s elapsed.");
-                    }
+                    double throughput = timeS == 0 ? changed : changed / timeS;
+                    actor.printDebug(TranslatableComponent.of(
+                            "worldedit.command.time-elapsed",
+                            TextComponent.of(timeS),
+                            TextComponent.of(changed),
+                            TextComponent.of(Math.round(throughput))
+                    ));
                 }
 
                 worldEdit.flushBlockBag(actor, editSession);
@@ -567,7 +559,7 @@ public final class PlatformCommandManager {
             store.injectValue(Key.of(Player.class), ValueProvider.constant((Player) actor));
         } else {
             store.injectValue(Key.of(Player.class), context -> {
-                throw new CommandException(TextComponent.of("This command must be used with a player."), ImmutableList.of());
+                throw new CommandException(TranslatableComponent.of("worldedit.command.player-only"), ImmutableList.of());
             });
         }
         store.injectValue(Key.of(Arguments.class), ValueProvider.constant(arguments));
@@ -584,8 +576,8 @@ public final class PlatformCommandManager {
     }
 
     private void handleUnknownException(Actor actor, Throwable t) {
-        actor.printError("Please report this error: [See console]");
-        actor.printRaw(t.getClass().getName() + ": " + t.getMessage());
+        actor.printError(TranslatableComponent.of("worldedit.command.error.report"));
+        actor.print(TextComponent.of(t.getClass().getName() + ": " + t.getMessage()));
         log.error("An unexpected error while handling a WorldEdit command", t);
     }
 

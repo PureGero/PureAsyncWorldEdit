@@ -19,3 +19,7 @@ run
 *-private.sh
 
 *.launch
+=======
+# i18n
+worldedit-core/src/main/resources/lang/*
+!worldedit-core/src/main/resources/lang/strings.json
