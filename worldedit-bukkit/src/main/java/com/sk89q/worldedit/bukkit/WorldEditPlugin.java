@@ -98,6 +98,7 @@ public class WorldEditPlugin extends JavaPlugin implements TabCompleter {
     private static final Logger log = LoggerFactory.getLogger(WorldEditPlugin.class);
     public static final String CUI_PLUGIN_CHANNEL = "worldedit:cui";
     private static WorldEditPlugin INSTANCE;
+    private static final int BSTATS_PLUGIN_ID = 3328;
 
     private BukkitImplAdapter bukkitAdapter;
     private BukkitServerInterface server;
@@ -163,7 +164,7 @@ public class WorldEditPlugin extends JavaPlugin implements TabCompleter {
         }, 1, 1);
         
         // Enable metrics
-        new Metrics(this);
+        new Metrics(this, BSTATS_PLUGIN_ID);
         PaperLib.suggestPaper(this);
     }
 
